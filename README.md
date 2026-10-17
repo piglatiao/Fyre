@@ -33,7 +33,7 @@
 
 - 媒体收藏在后台「站点设置」分别配置 Bangumi、VNDB、MyAnimeList 的启用状态、用户标识、接口地址、每页条数、缓存时长与 NSFW 策略；NSFW 支持 `off`（原样展示）、`blur`（模糊封面）与 `hide`（隐藏条目）。
 - 三个媒体源均采用超时、一次重试、进程内缓存与旧缓存回退；上游异常时优先展示最近一次成功数据。
-- 评论当前支持 Giscus：在后台填写 `commentProvider=giscus` 与仓库、分类等 `commentConfig` 后，文章、留言、打赏与友链页面会显示评论区；未配置时前台保持隐藏。
+- 评论当前支持 Giscus：目标 GitHub 仓库需为公开仓库、开启 Discussions，并为该仓库安装 Giscus App；随后在 <https://giscus.app> 选择仓库与 Discussion 分类，将生成的 `repo`、`repoId`、`category`、`categoryId`（可连同 `mapping`、`lang` 等）保存到后台「站点设置 → 评论配置」的 JSON 中，并填写 `commentProvider=giscus`。配置完整后，文章、留言、打赏与友链页面显示评论区；未配置或信息不完整时不会加载第三方脚本。
 
 ## 目录结构
 
