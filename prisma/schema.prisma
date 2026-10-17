@@ -25,6 +25,25 @@ enum MediaType {
   FILE
 }
 
+// 评论归属的内容类型
+enum CommentTargetType {
+  POST          // 文章
+  GALLERY_ALBUM // 相册
+  PROJECT       // 项目
+  PAGE          // 自定义页面
+  DYNAMIC       // 单条动态
+  GUESTBOOK     // 留言页
+  SPONSOR       // 打赏页
+  FRIENDS       // 友链页
+}
+
+// 评论审核状态
+enum CommentStatus {
+  PENDING  // 待审核，仅后台可见
+  APPROVED // 已通过，前台公开
+  HIDDEN   // 已隐藏，仅后台可见
+}
+
 // 管理员账号（一期单管理员）
 model User {
   id           Int      @id @default(autoincrement())
@@ -320,4 +339,23 @@ model GalleryPhoto {
 
   @@index([albumId, sortOrder, id])
   @@map("gallery_photos")
+}
+
+// 站内评论：按内容类型与编号归属，邮箱仅后台可见
+model Comment {
+  id            Int               @id @default(autoincrement())
+  targetType    CommentTargetType
+  targetId      Int?
+  targetTitle   String            @db.VarChar(200)
+  authorName    String            @db.VarChar(50)
+  authorEmail   String?           @db.VarChar(100)
+  authorWebsite String?           @db.VarChar(500)
+  content       String            @db.VarChar(2000)
+  status        CommentStatus     @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([targetType, targetId, status, createdAt])
+  @@index([status, createdAt])
+  @@map("comments")
 }

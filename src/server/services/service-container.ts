@@ -21,11 +21,13 @@ import { PrismaProjectRepository } from "@/server/repositories/project.repositor
 import { PrismaAdminProjectRepository } from "@/server/repositories/admin-project.repository";
 import { PrismaGalleryRepository } from "@/server/repositories/gallery.repository";
 import { PrismaAdminGalleryRepository } from "@/server/repositories/admin-gallery.repository";
+import { PrismaAdminCommentRepository } from "@/server/repositories/admin-comment.repository";
 import { PrismaMusicTrackRepository } from "@/server/repositories/music-track.repository";
 import { PrismaPageRepository } from "@/server/repositories/page.repository";
 import { PrismaPostRepository } from "@/server/repositories/post.repository";
 import { PrismaSettingRepository } from "@/server/repositories/setting.repository";
 import { PrismaTagRepository } from "@/server/repositories/tag.repository";
+import { PrismaCommentRepository } from "@/server/repositories/comment.repository";
 import { LocalMediaStorage } from "@/server/storage/local-media-storage";
 import { HttpRemoteMediaFetcher } from "@/server/storage/remote-media-fetcher";
 import { DefaultAdminAccountService } from "./admin-account.service";
@@ -60,6 +62,8 @@ import { DefaultBilibiliService } from "./bilibili.service";
 import { DefaultBangumiService } from "./bangumi.service";
 import { DefaultVndbService } from "./vndb.service";
 import { DefaultMalService } from "./mal.service";
+import { DefaultCommentService } from "./comment.service";
+import { DefaultAdminCommentService } from "./admin-comment.service";
 
 // 组合根：把仓储与存储实现注入服务实现，页面与 API 统一从这里取服务
 export function createSiteServices(): SiteServices {
@@ -75,6 +79,7 @@ export function createSiteServices(): SiteServices {
   const sponsors = new PrismaSponsorRepository();
   const projects = new PrismaProjectRepository();
   const galleries = new PrismaGalleryRepository();
+  const comments = new PrismaCommentRepository();
 
   const adminPosts = new PrismaAdminPostRepository();
   const adminCategories = new PrismaAdminCategoryRepository();
@@ -91,17 +96,19 @@ export function createSiteServices(): SiteServices {
   const adminSponsors = new PrismaAdminSponsorRepository();
   const adminProjects = new PrismaAdminProjectRepository();
   const adminGalleries = new PrismaAdminGalleryRepository();
+  const adminComments = new PrismaAdminCommentRepository();
 
   const adminPostService = new DefaultAdminPostService(adminPosts);
   const adminCategoryService = new DefaultAdminCategoryService(adminCategories);
   const adminTagService = new DefaultAdminTagService(adminTags);
+  const settingService = new DefaultSettingService(settings);
 
   return {
     postService: new DefaultPostService(posts),
     categoryService: new DefaultCategoryService(categories),
     tagService: new DefaultTagService(tags),
     pageService: new DefaultPageService(pages),
-    settingService: new DefaultSettingService(settings),
+    settingService,
     dynamicService: new DefaultDynamicService(dynamics),
     friendService: new DefaultFriendService(friends),
     bookmarkService: new DefaultBookmarkService(bookmarks),
@@ -113,6 +120,7 @@ export function createSiteServices(): SiteServices {
     bangumiService: new DefaultBangumiService(),
     vndbService: new DefaultVndbService(),
     malService: new DefaultMalService(),
+    commentService: new DefaultCommentService(comments, settingService),
     adminPostService,
     adminCategoryService,
     adminTagService,
@@ -139,6 +147,7 @@ export function createSiteServices(): SiteServices {
     adminSponsorService: new DefaultAdminSponsorService(adminSponsors),
     adminProjectService: new DefaultAdminProjectService(adminProjects),
     adminGalleryService: new DefaultAdminGalleryService(adminGalleries),
+    adminCommentService: new DefaultAdminCommentService(adminComments),
     markdownImportService: new DefaultMarkdownImportService(adminPostService, adminTagService, adminCategoryService),
   };
 }

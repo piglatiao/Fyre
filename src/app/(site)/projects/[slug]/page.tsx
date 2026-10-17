@@ -10,6 +10,7 @@ import ProjectCover from "@/components/site/project-cover";
 import ProjectLinkIcon from "@/components/site/project-link-icon";
 import ProjectStatusBadge from "@/components/site/project-status-badge";
 import SiteCategoryBar from "@/components/site/site-category-bar";
+import SiteComments from "@/components/site/site-comments";
 import TocPortal from "@/components/site/toc-portal";
 import TocCard from "@/components/site/sidebar/toc-card";
 import { decodePathSegment } from "@/lib/decode-path-segment";
@@ -147,6 +148,8 @@ export default async function ProjectDetailPage({
 
         <MarkdownContent html={html} />
       </article>
+
+      <SiteComments targetType="PROJECT" targetId={project.id} title={project.title} />
 
       <FloatingTocRegistrar items={toc} />
       <TocPortal>

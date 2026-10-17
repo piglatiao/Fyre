@@ -14,11 +14,8 @@ export const metadata: Metadata = {
 
 // 留言页：介绍内容来自后台「页面」中的 guestbook，评论区沿用站点设置的挂载位
 export default async function GuestbookPage() {
-  const { pageService, settingService } = createSiteServices();
-  const [view, settings] = await Promise.all([
-    pageService.getPublishedBySlug("guestbook"),
-    settingService.getSiteSettings(),
-  ]);
+  const { pageService } = createSiteServices();
+  const view = await pageService.getPublishedBySlug("guestbook");
 
   return (
     <div className="onload-animation flex flex-col">
@@ -45,9 +42,7 @@ export default async function GuestbookPage() {
       </div>
 
       <SiteComments
-        provider={settings.commentProvider}
-        config={settings.commentConfig}
-        path="/guestbook"
+        targetType="GUESTBOOK"
         title="留言"
       />
 

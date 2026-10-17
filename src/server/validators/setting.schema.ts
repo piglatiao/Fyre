@@ -46,8 +46,8 @@ export const settingSchema = z.object({
         }
       });
     }),
-  commentProvider: z.string().trim().max(50, "评论服务名过长").default(""),
-  commentConfig: z.record(z.string(), z.unknown()).default({}),
+  commentsEnabled: z.coerce.boolean().default(true),
+  commentsRequireApproval: z.coerce.boolean().default(false),
   friendPageTitle: z.string().trim().max(50, "友链页标题过长").default("友链"),
   friendPageDescription: z.string().trim().max(200, "友链页描述过长").default(""),
   friendShowCustomContent: z.coerce.boolean().default(true),

@@ -29,6 +29,8 @@ import type { BilibiliService } from "./bilibili.service.interface";
 import type { BangumiService } from "./bangumi.service.interface";
 import type { VndbService } from "./vndb.service.interface";
 import type { MalService } from "./mal.service.interface";
+import type { CommentService } from "./comment.service.interface";
+import type { AdminCommentService } from "./admin-comment.service.interface";
 
 // 服务集合：页面与路由统一从组合根获取服务
 export interface SiteServices {
@@ -48,6 +50,7 @@ export interface SiteServices {
   bangumiService: BangumiService;
   vndbService: VndbService;
   malService: MalService;
+  commentService: CommentService;
   adminPostService: AdminPostService;
   adminCategoryService: AdminCategoryService;
   adminTagService: AdminTagService;
@@ -62,5 +65,6 @@ export interface SiteServices {
   adminSponsorService: AdminSponsorService;
   adminProjectService: AdminProjectService;
   adminGalleryService: AdminGalleryService;
+  adminCommentService: AdminCommentService;
   markdownImportService: MarkdownImportService;
 }

@@ -12,6 +12,7 @@ import {
   ImageOff,
   Lock,
   MessageSquare,
+  MessagesSquare,
   Music,
   PenLine,
   Rocket,
@@ -86,24 +87,38 @@ export default async function AdminDashboardPage() {
       label: "定时待发布",
       count: stats.scheduledCount,
       hint: stats.nextScheduledAt ? "最近一篇：" + formatDate(stats.nextScheduledAt) : "暂无定时任务",
+      href: "/admin/posts",
+    },
+    {
+      icon: MessagesSquare,
+      label: "评论待审核",
+      count: stats.modules.pendingCommentCount,
+      hint:
+        stats.modules.pendingCommentCount > 0
+          ? "通过后才会在前台公开"
+          : "没有等待审核的评论",
+      href: "/admin/comments?status=PENDING",
     },
     {
       icon: FileEdit,
       label: "草稿待完善",
       count: stats.draftCount,
       hint: stats.draftCount > 0 ? "写完即可发布" : "没有未完成的草稿",
+      href: "/admin/posts",
     },
     {
       icon: ImageOff,
       label: "缺少封面",
       count: stats.coverlessCount,
       hint: stats.coverlessCount > 0 ? "补封面后列表更整齐" : "全部文章都有封面",
+      href: "/admin/posts",
     },
     {
       icon: Lock,
       label: "已加密文章",
       count: stats.encryptedCount,
       hint: stats.encryptedCount > 0 ? "需要密码才能阅读" : "暂未设置阅读密码",
+      href: "/admin/posts",
     },
   ];
   const maxPopularViews = Math.max(1, ...popularPosts.map((post) => post.viewCount));
@@ -165,6 +180,13 @@ export default async function AdminDashboardPage() {
       value: stats.modules.musicTrackCount,
       detail: "维护本地曲库与播放列表",
       icon: Music,
+    },
+    {
+      href: "/admin/comments",
+      label: "评论",
+      value: stats.modules.commentCount,
+      detail: stats.modules.pendingCommentCount + " 条待审核 · 站内数据库",
+      icon: MessagesSquare,
     },
   ];
 
@@ -293,7 +315,7 @@ export default async function AdminDashboardPage() {
             <ul className="mt-3 space-y-1">
               {todos.map((item) => (
                 <li key={item.label}>
-                  <Link href="/admin/posts" className="admin-row flex items-center gap-3 rounded-xl px-2 py-2">
+                  <Link href={item.href} className="admin-row flex items-center gap-3 rounded-xl px-2 py-2">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-(--btn-regular-bg) text-(--primary)">
                       <item.icon className="size-4" aria-hidden />
                     </span>

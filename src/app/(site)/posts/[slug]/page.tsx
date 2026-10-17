@@ -268,9 +268,8 @@ export default async function PostDetailPage({ params }: PageProps<"/posts/[slug
       </section>
 
       <SiteComments
-        provider={settings.commentProvider}
-        config={settings.commentConfig}
-        path={`/posts/${post.slug}`}
+        targetType="POST"
+        targetId={post.id}
         title={post.title}
       />
 

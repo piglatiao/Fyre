@@ -120,9 +120,7 @@ export default async function SponsorPage() {
       ) : null}
 
       <SiteComments
-        provider={settings.commentProvider}
-        config={settings.commentConfig}
-        path="/sponsor"
+        targetType="SPONSOR"
         title="打赏"
       />
 

@@ -1,3 +1,4 @@
+import { CommentStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { DashboardModuleCounts } from "@/types/dashboard-module-counts";
 import type { AdminDashboardRepository } from "./admin-dashboard.repository.interface";
@@ -16,6 +17,8 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
       sponsorMethodCount,
       sponsorRecordCount,
       musicTrackCount,
+      commentCount,
+      pendingCommentCount,
     ] = await Promise.all([
       prisma.dynamic.count(),
       prisma.project.count(),
@@ -27,6 +30,8 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
       prisma.sponsorMethod.count(),
       prisma.sponsorRecord.count(),
       prisma.musicTrack.count(),
+      prisma.comment.count(),
+      prisma.comment.count({ where: { status: CommentStatus.PENDING } }),
     ]);
     return {
       dynamicCount,
@@ -39,6 +44,8 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
       sponsorMethodCount,
       sponsorRecordCount,
       musicTrackCount,
+      commentCount,
+      pendingCommentCount,
     };
   }
 }

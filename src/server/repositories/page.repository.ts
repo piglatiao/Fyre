@@ -7,7 +7,7 @@ export class PrismaPageRepository implements PageRepository {
   async findPublishedBySlug(slug: string): Promise<CustomPage | null> {
     return prisma.page.findFirst({
       where: { slug, published: true },
-      select: { title: true, slug: true, content: true, updatedAt: true },
+      select: { id: true, title: true, slug: true, content: true, updatedAt: true },
     });
   }
 

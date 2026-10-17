@@ -27,8 +27,8 @@ const emptySettings: SiteSettings = {
   seoKeywords: [],
   socialLinks: [],
   navLinks: [],
-  commentProvider: "",
-  commentConfig: {},
+  commentsEnabled: true,
+  commentsRequireApproval: false,
   friendPageTitle: "友链",
   friendPageDescription: "这里是我的朋友们，欢迎互相访问交流",
   friendShowCustomContent: true,
@@ -104,12 +104,11 @@ const emptySettings: SiteSettings = {
   siteStartDate: "",
 };
 
-// 站点设置：站点信息、导航、社交、备案、SEO 与评论预留配置
+// 站点设置：站点信息、导航、社交、备案、SEO 与站内评论配置
 export default function SettingsManager() {
   const [form, setForm] = useState<SiteSettings>(emptySettings);
   const [keywordsText, setKeywordsText] = useState("");
   const [subtitlesText, setSubtitlesText] = useState("");
-  const [commentConfigText, setCommentConfigText] = useState("{}");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -122,7 +121,6 @@ export default function SettingsManager() {
         setForm(result.data);
         setKeywordsText(result.data.seoKeywords.join("\n"));
         setSubtitlesText(result.data.bannerSubtitles.join("\n"));
-        setCommentConfigText(JSON.stringify(result.data.commentConfig ?? {}, null, 2));
       } else {
         setMessage({ type: "error", text: result.error.message });
       }
@@ -130,20 +128,8 @@ export default function SettingsManager() {
     })();
   }, []);
 
-  // 保存设置：SEO 关键词按行拆分，评论配置需为合法 JSON 对象
+  // 保存设置：SEO 关键词与横幅副标题按行拆分后提交
   async function handleSubmit(): Promise<void> {
-    let commentConfig: Record<string, unknown>;
-    try {
-      const parsed: unknown = JSON.parse(commentConfigText || "{}");
-      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-        setMessage({ type: "error", text: "评论配置必须是 JSON 对象" });
-        return;
-      }
-      commentConfig = parsed as Record<string, unknown>;
-    } catch {
-      setMessage({ type: "error", text: "评论配置不是合法的 JSON" });
-      return;
-    }
     setSaving(true);
     setMessage(null);
     const payload: SiteSettings = {
@@ -156,7 +142,6 @@ export default function SettingsManager() {
         .split(/\r?\n/)
         .map((item) => item.trim())
         .filter((item) => item.length > 0),
-      commentConfig,
     };
     const result = await requestJsonBody<{ updated: boolean }>("/api/settings", "PUT", payload);
     setSaving(false);
@@ -1513,35 +1498,29 @@ export default function SettingsManager() {
             className={`mt-1.5 ${inputClass}`}
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="setting-comment-provider" className={labelClass}>
-              评论服务（留空表示关闭评论区）
-            </label>
+        <div className="flex flex-wrap gap-x-6 gap-y-3">
+          <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
             <input
-              id="setting-comment-provider"
-              value={form.commentProvider}
-              onChange={(event) => setForm({ ...form, commentProvider: event.target.value })}
-              placeholder="例如 giscus / waline"
-              className={`mt-1.5 ${inputClass}`}
+              type="checkbox"
+              checked={form.commentsEnabled}
+              onChange={(event) => setForm({ ...form, commentsEnabled: event.target.checked })}
+              className="size-4 accent-(--primary)"
             />
-          </div>
-          <div>
-            <label htmlFor="setting-comment-config" className={labelClass}>
-              评论配置（JSON 对象）
-            </label>
-            <textarea
-              id="setting-comment-config"
-              value={commentConfigText}
-              onChange={(event) => setCommentConfigText(event.target.value)}
-              rows={3}
-              spellCheck={false}
-              className={`mt-1.5 font-mono ${inputClass}`}
+            启用站内评论
+          </label>
+          <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={form.commentsRequireApproval}
+              onChange={(event) => setForm({ ...form, commentsRequireApproval: event.target.checked })}
+              className="size-4 accent-(--primary)"
             />
-          </div>
+            提交后需审核
+          </label>
         </div>
         <p className="text-xs text-zinc-400 dark:text-zinc-500">
-          Giscus 已接入文章、留言、打赏与友链页面；配置完整后前台评论区立即显示，留空评论服务则隐藏。
+          评论直接保存到本站数据库，默认显示在文章、相册、项目、页面、动态、留言、打赏与友链内容下方。
+          开启审核后，新评论需在「评论管理」中通过才会公开。
         </p>
       </div>
 

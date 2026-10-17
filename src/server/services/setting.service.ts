@@ -34,8 +34,8 @@ const fallbackSettings: SiteSettings = {
   seoKeywords: [],
   socialLinks: [],
   navLinks: [],
-  commentProvider: "",
-  commentConfig: {},
+  commentsEnabled: true,
+  commentsRequireApproval: false,
   friendPageTitle: "友链",
   friendPageDescription: "这里是我的朋友们，欢迎互相访问交流",
   friendShowCustomContent: true,
@@ -158,14 +158,6 @@ function readSocialLinks(raw: string | undefined): SocialLink[] {
   });
 }
 
-// 读取对象设置项（如评论配置）
-function readRecord(raw: string | undefined): Record<string, unknown> {
-  const value = parseJson(raw);
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
-
 // 读取友链注意事项：仅保留标题和说明均有效的条目
 function readFriendNotes(raw: string | undefined): FriendPageNote[] {
   const value = parseJson(raw);
@@ -281,8 +273,11 @@ export class DefaultSettingService implements SettingService {
       seoKeywords: readStringArray(raw.seoKeywords),
       socialLinks: readSocialLinks(raw.socialLinks),
       navLinks: readNavLinks(raw.navLinks),
-      commentProvider: readString(raw.commentProvider, fallbackSettings.commentProvider),
-      commentConfig: readRecord(raw.commentConfig),
+      commentsEnabled: readBoolean(raw.commentsEnabled, fallbackSettings.commentsEnabled),
+      commentsRequireApproval: readBoolean(
+        raw.commentsRequireApproval,
+        fallbackSettings.commentsRequireApproval,
+      ),
       friendPageTitle: readString(raw.friendPageTitle, fallbackSettings.friendPageTitle),
       friendPageDescription: readOptionalString(raw.friendPageDescription, fallbackSettings.friendPageDescription),
       friendShowCustomContent: readBoolean(raw.friendShowCustomContent, fallbackSettings.friendShowCustomContent),

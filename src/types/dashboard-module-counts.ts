@@ -10,4 +10,6 @@ export interface DashboardModuleCounts {
   sponsorMethodCount: number;
   sponsorRecordCount: number;
   musicTrackCount: number;
+  commentCount: number;
+  pendingCommentCount: number;
 }

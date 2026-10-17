@@ -7,6 +7,7 @@ import MarkdownContent from "@/components/site/markdown-content";
 import PageBannerOverlay from "@/components/site/page-banner-overlay";
 import Pagination from "@/components/site/pagination";
 import SiteCategoryBar from "@/components/site/site-category-bar";
+import SiteComments from "@/components/site/site-comments";
 import { formatDateTimeSeconds } from "@/lib/dynamic-time";
 import { parsePageParam } from "@/lib/pagination";
 import { createSiteServices } from "@/server/services/service-container";
@@ -132,6 +133,12 @@ export default async function DynamicPage({ searchParams }: PageProps<"/dynamic"
               </header>
               <MarkdownContent html={entry.html} className="mt-3" />
               <DynamicGallery images={entry.images} />
+              <SiteComments
+                targetType="DYNAMIC"
+                targetId={entry.id}
+                title="动态评论"
+                collapsible
+              />
             </article>
           ))}
         </div>

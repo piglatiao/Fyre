@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Link2,
   MessageSquare,
+  MessagesSquare,
   Music,
   Rocket,
   Settings,
@@ -20,6 +21,7 @@ import type { AdminNavItem } from "@/types/admin-nav-item";
 export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
   { href: "/admin", label: "仪表盘", icon: LayoutDashboard },
   { href: "/admin/posts", label: "文章", icon: FileText },
+  { href: "/admin/comments", label: "评论", icon: MessagesSquare },
   { href: "/admin/dynamics", label: "动态", icon: MessageSquare },
   { href: "/admin/projects", label: "项目", icon: Rocket },
   { href: "/admin/gallery", label: "相册", icon: Images },

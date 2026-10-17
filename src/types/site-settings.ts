@@ -17,8 +17,8 @@ export interface SiteSettings {
   seoKeywords: string[];
   socialLinks: SocialLink[];
   navLinks: NavLink[];
-  commentProvider: string;
-  commentConfig: Record<string, unknown>;
+  commentsEnabled: boolean;
+  commentsRequireApproval: boolean;
   friendPageTitle: string;
   friendPageDescription: string;
   friendShowCustomContent: boolean;

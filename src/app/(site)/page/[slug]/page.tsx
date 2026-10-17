@@ -5,6 +5,7 @@ import FloatingTocRegistrar from "@/components/site/floating-toc-registrar";
 import MarkdownContent from "@/components/site/markdown-content";
 import PageBannerOverlay from "@/components/site/page-banner-overlay";
 import SiteCategoryBar from "@/components/site/site-category-bar";
+import SiteComments from "@/components/site/site-comments";
 import TocPortal from "@/components/site/toc-portal";
 import TocCard from "@/components/site/sidebar/toc-card";
 import { decodePathSegment } from "@/lib/decode-path-segment";
@@ -40,6 +41,7 @@ export default async function CustomPage({ params }: PageProps<"/page/[slug]">) 
         <p className="text-30 mb-5 text-sm">最后更新：{formatDate(view.page.updatedAt)}</p>
         <MarkdownContent html={view.html} />
       </article>
+      <SiteComments targetType="PAGE" targetId={view.page.id} title={view.page.title} />
       <FloatingTocRegistrar items={view.toc} />
       <TocPortal>
         <TocCard items={view.toc} />

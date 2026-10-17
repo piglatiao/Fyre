@@ -55,9 +55,7 @@ export default async function FriendsPage() {
       ) : null}
       {settings.friendShowComment ? (
         <SiteComments
-          provider={settings.commentProvider}
-          config={settings.commentConfig}
-          path="/friends/"
+          targetType="FRIENDS"
           title={settings.friendPageTitle}
         />
       ) : null}

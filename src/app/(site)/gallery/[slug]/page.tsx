@@ -7,6 +7,7 @@ import GalleryPhotoMasonry from "@/components/site/gallery-photo-masonry";
 import GalleryUnlock from "@/components/site/gallery-unlock";
 import PageBannerOverlay from "@/components/site/page-banner-overlay";
 import SiteCategoryBar from "@/components/site/site-category-bar";
+import SiteComments from "@/components/site/site-comments";
 import { formatDate } from "@/lib/format-date";
 import { decodePathSegment } from "@/lib/decode-path-segment";
 import { galleryUnlockCookieName, verifyGalleryUnlockToken } from "@/server/auth/gallery-unlock";
@@ -89,6 +90,8 @@ export default async function GalleryAlbumPage({
           <GalleryPhotoMasonry photos={album.photos} />
         )}
       </section>
+
+      <SiteComments targetType="GALLERY_ALBUM" targetId={album.id} title={album.title} />
 
       <BannerPortal>
         <PageBannerOverlay title={album.title} />
