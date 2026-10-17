@@ -1,0 +1,11 @@
+# 流萤动态博客定时任务示例（Linux，使用 crontab -e 添加到站点用户或 root）
+# 注意：crontab 中的 % 需要写成 \%，脚本需先执行 chmod +x scripts/*.sh
+
+# 1) 定时发布兜底：每 5 分钟检查一次到期的定时文章
+*/5 * * * * /srv/firefly/scripts/publish-due.sh >> /var/log/firefly-publish.log 2>&1
+
+# 2) 数据库备份：每天凌晨 3 点执行，自动保留 14 天
+0 3 * * * /srv/firefly/scripts/backup-db.sh >> /var/log/firefly-backup.log 2>&1
+
+# 3) 上传目录备份：每周日凌晨 4 点打包（可选）
+0 4 * * 0 tar -czf /var/backups/firefly/uploads-$(date +\%Y\%m\%d).tar.gz -C /srv/firefly data/uploads

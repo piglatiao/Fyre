@@ -1,0 +1,323 @@
+// 流萤动态博客数据模型（MySQL）
+// 注意：Prisma 7 起连接串统一在 prisma.config.ts 的 datasource.url 中配置，schema 内不再写 url
+
+datasource db {
+  provider = "mysql"
+}
+
+// Prisma 7 新版生成器：产物输出到 src/generated/prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// 文章发布状态
+enum PostStatus {
+  DRAFT      // 草稿，仅后台可见
+  SCHEDULED  // 定时待发布，到点自动生效
+  PUBLISHED  // 已发布，前台可见
+  PRIVATE    // 私密，仅后台可见
+}
+
+// 媒体类型
+enum MediaType {
+  IMAGE
+  FILE
+}
+
+// 管理员账号（一期单管理员）
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  passwordHash String   @db.VarChar(100)
+  nickname     String?  @db.VarChar(50)
+  email        String?  @db.VarChar(100)
+  role         String   @default("admin") @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+// 文章主体
+model Post {
+  id             Int        @id @default(autoincrement())
+  title          String     @db.VarChar(200)
+  slug           String     @unique @db.VarChar(200)
+  content        String     @db.LongText
+  excerpt        String?    @db.VarChar(500)
+  coverUrl       String?    @db.VarChar(500)
+  status         PostStatus @default(DRAFT)
+  pinned         Boolean    @default(false)
+  encrypted      Boolean    @default(false)
+  passwordHash   String?    @db.VarChar(100)
+  series         String?    @db.VarChar(60)
+  viewCount      Int        @default(0)
+  seoTitle       String?    @db.VarChar(200)
+  seoDescription String?    @db.VarChar(300)
+  seoKeywords    String?    @db.VarChar(300)
+  publishedAt    DateTime?
+  scheduledAt    DateTime?
+  categoryId     Int?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags     PostTag[]
+
+  @@index([status, publishedAt])
+  @@index([status, scheduledAt])
+  @@index([status, series, publishedAt])
+  @@index([categoryId])
+  @@map("posts")
+}
+
+// 一级分类
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  slug        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(300)
+  sort        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  posts Post[]
+
+  @@map("categories")
+}
+
+// 标签
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(50)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  posts PostTag[]
+
+  @@map("tags")
+}
+
+// 文章与标签的多对多关联
+model PostTag {
+  postId Int
+  tagId  Int
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+  @@map("post_tags")
+}
+
+// 自定义页面（关于我等）
+model Page {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(200)
+  slug      String   @unique @db.VarChar(200)
+  content   String   @db.LongText
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pages")
+}
+
+// 站点设置（键值对，value 存 JSON 字符串）
+model Setting {
+  key       String   @id @db.VarChar(100)
+  value     String   @db.LongText
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// 媒体资源
+model Media {
+  id           Int       @id @default(autoincrement())
+  filename     String    @db.VarChar(200)
+  originalName String    @db.VarChar(255)
+  url          String    @db.VarChar(500)
+  mimeType     String    @db.VarChar(100)
+  size         Int
+  type         MediaType
+  createdAt    DateTime  @default(now())
+
+  @@index([type, createdAt])
+  @@map("media")
+}
+
+// 音乐曲目：本地曲库条目（音频与封面复用媒体库地址）
+model MusicTrack {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(200)
+  artist    String   @default("") @db.VarChar(200)
+  audioUrl  String   @db.VarChar(500)
+  coverUrl  String   @default("") @db.VarChar(500)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder, id])
+  @@map("music_tracks")
+}
+
+// 动态（说说）：后台维护的短内容，支持配图、位置、置顶与定时可见
+model Dynamic {
+  id          Int      @id @default(autoincrement())
+  content     String   @db.LongText
+  images      Json
+  location    String   @default("") @db.VarChar(64)
+  pinned      Boolean  @default(false)
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([pinned, publishedAt])
+  @@map("dynamics")
+}
+
+// 友情链接：后台维护、前台按权重排序展示
+model FriendLink {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(100)
+  avatarUrl   String   @default("") @db.VarChar(500)
+  description String   @default("") @db.VarChar(300)
+  siteUrl     String   @db.VarChar(500)
+  tags        Json
+  weight      Int      @default(0)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled, weight, id])
+  @@map("friend_links")
+}
+
+// 书签导航分组：一个分组包含多个书签
+model BookmarkGroup {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(100)
+  slug        String     @unique @db.VarChar(100)
+  icon        String     @default("") @db.VarChar(500)
+  description String     @default("") @db.VarChar(300)
+  weight      Int        @default(0)
+  enabled     Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  bookmarks   Bookmark[]
+
+  @@index([enabled, weight, id])
+  @@map("bookmark_groups")
+}
+
+// 书签条目：归属一个分组，按权重排序
+model Bookmark {
+  id          Int           @id @default(autoincrement())
+  groupId     Int
+  title       String        @db.VarChar(100)
+  url         String        @db.VarChar(500)
+  description String        @default("") @db.VarChar(300)
+  icon        String        @default("") @db.VarChar(500)
+  weight      Int           @default(0)
+  enabled     Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  group       BookmarkGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, enabled, weight, id])
+  @@map("bookmarks")
+}
+
+// 打赏方式：收款码或外部打赏链接
+model SponsorMethod {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  icon        String   @default("") @db.VarChar(500)
+  qrCodeUrl   String   @default("") @db.VarChar(500)
+  linkUrl     String   @default("") @db.VarChar(500)
+  description String   @default("") @db.VarChar(300)
+  sortOrder   Int      @default(0)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled, sortOrder, id])
+  @@map("sponsor_methods")
+}
+
+// 打赏记录：展示打赏者、金额、留言与日期
+model SponsorRecord {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  avatarUrl   String   @default("") @db.VarChar(500)
+  amount      String   @default("") @db.VarChar(50)
+  message     String   @default("") @db.VarChar(300)
+  sponsoredAt String   @default("") @db.VarChar(10)
+  sortOrder   Int      @default(0)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled, sortOrder, id])
+  @@map("sponsor_records")
+}
+
+// 项目展示：列表卡片与详情页 README 共用一份记录
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(200)
+  slug        String   @unique @db.VarChar(200)
+  description String   @default("") @db.VarChar(500)
+  content     String   @db.LongText
+  coverUrl    String   @default("") @db.VarChar(500)
+  status      String   @default("") @db.VarChar(30)
+  tags        Json
+  links       Json
+  publishedAt DateTime
+  sortOrder   Int      @default(0)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled, sortOrder, publishedAt])
+  @@map("projects")
+}
+
+// 相册：支持独立密码、日期、地点、标签与排序
+model GalleryAlbum {
+  id           Int            @id @default(autoincrement())
+  title        String         @db.VarChar(200)
+  slug         String         @unique @db.VarChar(200)
+  description  String         @default("") @db.VarChar(500)
+  coverUrl     String         @default("") @db.VarChar(500)
+  eventDate    DateTime?
+  location     String         @default("") @db.VarChar(200)
+  tags         Json
+  passwordHash String?        @db.VarChar(255)
+  passwordHint String         @default("") @db.VarChar(255)
+  sortOrder    Int            @default(0)
+  enabled      Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  photos       GalleryPhoto[]
+
+  @@index([enabled, sortOrder, eventDate])
+  @@map("gallery_albums")
+}
+
+// 相册照片：按排序值展示，删除相册时级联清理
+model GalleryPhoto {
+  id        Int          @id @default(autoincrement())
+  albumId   Int
+  imageUrl  String       @db.VarChar(500)
+  caption   String       @default("") @db.VarChar(300)
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  album     GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@index([albumId, sortOrder, id])
+  @@map("gallery_photos")
+}

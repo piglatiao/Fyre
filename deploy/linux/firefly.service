@@ -1,0 +1,28 @@
+# 流萤动态博客 systemd 服务单元示例（Linux）
+# 部署步骤：
+#   1. 修改下方 WorkingDirectory / User / ExecStart 中的路径与账号
+#   2. sudo cp deploy/linux/firefly.service /etc/systemd/system/firefly.service
+#   3. sudo systemctl daemon-reload && sudo systemctl enable --now firefly
+# 说明：应用自身的环境变量（DATABASE_URL 等）由项目根目录的 .env 提供，Next.js 启动时会自动加载。
+[Unit]
+Description=Firefly Dynamic Blog (Next.js)
+Documentation=https://nextjs.org/docs
+After=network.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/firefly
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# 直接调用 Next CLI，避免 systemd 环境缺少 pnpm 全局路径
+ExecStart=/usr/bin/node /srv/firefly/node_modules/next/dist/bin/next start -p 3000
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/firefly/app.log
+StandardError=append:/var/log/firefly/error.log
+
+[Install]
+WantedBy=multi-user.target
