@@ -563,7 +563,7 @@ export default function BookmarksManager({ groups }: { groups: AdminBookmarkGrou
                   group.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 rounded-xl border border-(--line-divider) p-2.5"
+                      className="flex min-w-0 items-center gap-3 rounded-xl border border-(--line-divider) p-2.5"
                     >
                       <BookmarkIcon
                         icon={item.icon}
