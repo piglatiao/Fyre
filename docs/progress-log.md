@@ -1228,6 +1228,7 @@
 - 修复移动菜单 ESLint 的 effect 内同步 `setState` 告警：路由关闭改为 `popstate` 事件回调，链接点击关闭逻辑保持不变。
 
 **评论状态**
+> 2026-10-17 后续更新：以下 Giscus 方案已废弃并由站内数据库评论取代；本段仅保留为历史记录。
 - `SiteComments` 已挂载到文章、留言、打赏与友链页面，支持 Giscus 脚本加载与明暗主题同步；未配置评论服务时整块隐藏。
 - 当前数据库仍为 `commentProvider=""`、`commentConfig={}`，真实 Giscus 仓库与分类尚未配置，因此生产页面暂不显示评论区。
 
@@ -1266,6 +1267,7 @@
 - 本轮复跑未发现新的前台视觉差异；详细全站截图与逐页对照证据沿用上一节记录。
 
 **评论接入审计**
+> 2026-10-17 后续更新：本节的 Giscus / GitHub Discussions 前置条件已失效；现为站内数据库评论，无需开启 Discussions、安装 Giscus App 或提供 `repoId`、`categoryId`。
 - GitHub API 实测 `piglatiao/Fyre` 为公开仓库但 `has_discussions=false`；本机没有 `gh` CLI 登录态，无法自动开启 Discussions 或安装 Giscus App。
 - 真实接入前需要：在仓库设置中开启 Discussions → 安装 Giscus App → 在 giscus.app 选择仓库与分类并取得 `repoId`、`categoryId` → 将完整 `commentConfig` 与 `commentProvider=giscus` 写入后台站点设置。
 - 当前数据库仍为 `commentProvider=""`、`commentConfig={}`，因此生产页面的评论区保持隐藏；README 已补充上述前置条件与配置字段说明。
@@ -1274,3 +1276,30 @@
 1. 待审核：为 `/admin/bookmarks` 的网格项补充 `min-w-0`，然后重跑 390px 与桌面验收。
 2. 待外部条件就绪：完成 Giscus 仓库配置并在文章、留言、打赏、友链页实测加载与主题同步。
 3. 继续仪表盘高级统计/视觉效果增强，完成 V1 最终验收与构建产物归档。
+
+## 2026-10-17 17:0x-17:44 · 站内数据库评论落地 + 导航即时搜索与透明度修复
+
+**站内评论（替代 Giscus）**
+- 新增 `comments` 表，迁移 `20261017090651_add_comments` 已应用；评论归入本站 MySQL，不再依赖 GitHub Discussions、Giscus App 或 `repoId` / `categoryId`。
+- `CommentTargetType` 覆盖 `POST`、`GALLERY_ALBUM`、`PROJECT`、`PAGE`、`DYNAMIC`、`GUESTBOOK`、`SPONSOR`、`FRIENDS` 八类目标；文章、相册、项目、自定义页面、单条动态、留言、打赏与友链页面均已挂载。
+- 新增公开接口 `GET/POST /api/comments` 与后台写接口 `PATCH/DELETE /api/comments/[id]`；评论区按目标读取并分页加载（每页 10 条），后台支持状态、类型、关键词筛选、分页，以及通过、隐藏、转待审和删除。
+- 默认 `commentsEnabled=true`、`commentsRequireApproval=false`，访客提交后立即公开；后台「站点设置 → SEO 与评论」可整体关闭评论区或开启审核，开启后新评论进入待审并在「评论管理」处理。
+- 邮箱仅服务端保存且不在前端返回；站点链接仅接受 HTTP(S)；正文按纯文本安全展示；提交限流为同一 IP + 评论目标 10 分钟 5 次，超限返回 `429` 与 `Retry-After: 600`。
+- 后台侧栏和移动抽屉新增「评论」，仪表盘补充评论统计与待办入口。
+
+**导航搜索与显示设置**
+- 顶部搜索不再跳转 `/search`，改为导航栏即时搜索；输入停顿 `250ms` 请求 `/api/search`，当前页浮层展示前 5 条，超过 5 条才出现 `/search?q=` 的“查看全部”入口。
+- 修复桌面重复放大镜：移动端触发按钮补回重要级隐藏类 `lg:hidden!`，1440px 可见搜索按钮数为 0。
+- 卡片透明度不可调的根因是 `#top-row` 的 `pointer-events: none`；显示设置根容器补充 `data-interactive`，面板外关闭改为文档级 `pointerdown`，移除覆盖全屏的关闭按钮。
+- 实测滑杆 `0.5 → 0.85`，卡片背景同步 `rgba(255,255,255,0.5) → rgba(255,255,255,0.85)`；“恢复后台默认透明度”回到 `0.6`，点击面板外可关闭。收尾后测试浏览器已恢复默认值。
+
+**验证**
+- `pnpm exec tsc --noEmit`、目标 ESLint、`pnpm build` 全部通过；最终构建 ID `BUaQJTNFycg4umAsjDxxh`，生产服务 `http://localhost:3000` 返回 HTTP 200（PID 16672）。
+- 评论 E2E：8 类目标均提交成功、状态 `APPROVED` 且对应页面可见；首屏 10 条，点击“加载更多”后 16 条且 ID 不重复；限流前 5 次返回 200、第 6 次返回 429。
+- 390px 留言页评论区宽 376px、表单宽 341px，无横向溢出；后台评论页无溢出，15 项抽屉导航完整。浏览器异常 0；24 条自动测试评论已全部经后台接口删除，无残留。
+- 导航搜索：桌面输入 `Markdown` 得到 2 条结果，点击进入 `/posts/markdown-guide`；390px 浮层宽 362px、页面 `scrollWidth=390`，外部点击可关闭。
+- 截图：`%TEMP%/firefly-comment-evidence/`、`%TEMP%/firefly-search-evidence/nav-search-desktop.png`、`%TEMP%/firefly-search-evidence/nav-search-mobile.png`。
+
+**下一步**
+1. 继续仪表盘模块统计与视觉效果增强，逐项验收后台移动端导航。
+2. 完成全站桌面端与 390px 的官网对照及 V1 最终回归。
