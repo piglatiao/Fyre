@@ -2,7 +2,7 @@
 
 import { Moon, Palette, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ThemeMode } from "@/types/theme-mode";
 import {
   applyPostListLayout,
@@ -39,6 +39,21 @@ export default function DisplaySettings({
   const [opacity, setOpacity] = useState<number>(() => readStoredNumber(OPACITY_STORAGE_KEY, defaultCardOpacity));
   // 文章列表布局偏好：auto 表示跟随屏幕宽度（窄屏网格、宽屏列表）
   const [layout, setLayout] = useState<PostListLayoutPreference>(readPostListLayout);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // 点击面板外关闭显示设置，避免全屏遮罩按钮影响页面其他交互
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function handleOutside(event: PointerEvent): void {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handleOutside);
+    return () => document.removeEventListener("pointerdown", handleOutside);
+  }, [open]);
 
   // 把访客偏好同步到根元素 CSS 变量（仅卡片透明度）
   useEffect(() => {
@@ -76,7 +91,7 @@ export default function DisplaySettings({
   ];
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative" data-interactive>
       <button
         type="button"
         aria-label="显示设置"
@@ -88,14 +103,7 @@ export default function DisplaySettings({
         <Palette aria-hidden className="size-5" />
       </button>
       {open ? (
-        <>
-          <button
-            type="button"
-            aria-label="关闭显示设置"
-            className="fixed inset-0 z-40 cursor-default"
-            onClick={() => setOpen(false)}
-          />
-          <div className="float-panel absolute right-0 top-full z-50 mt-2 w-72 p-4">
+        <div className="float-panel absolute right-0 top-full z-50 mt-2 w-72 p-4">
             <p className="mb-2 text-sm font-bold">主题模式</p>
             <div className="mb-4 grid grid-cols-3 gap-2">
               {modeOptions.map(({ value, label, Icon }) => (
@@ -160,8 +168,7 @@ export default function DisplaySettings({
             >
               恢复后台默认透明度
             </button>
-          </div>
-        </>
+        </div>
       ) : null}
     </div>
   );

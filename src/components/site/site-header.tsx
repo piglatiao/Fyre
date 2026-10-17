@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import Link from "next/link";
 import { isVideoUrl } from "@/lib/media-url";
 import type { NavLink } from "@/types/nav-link";
@@ -8,6 +7,7 @@ import DisplaySettings from "./display-settings";
 import MobileNav from "./mobile-nav";
 import MusicPlayerNav from "./music-player-nav";
 import SiteNav from "./site-nav";
+import SiteSearch from "./site-search";
 import ThemeToggle from "./theme-toggle";
 
 // 前台顶部导航：站点标识 + 桌面主导航 + 搜索 / 显示设置 / 移动端菜单
@@ -40,18 +40,7 @@ export default function SiteHeader({
             <SiteNav items={navLinks} />
 
             <div className="col-start-3 flex items-center">
-              <Link
-                href="/search"
-                aria-label="搜索"
-                title="搜索"
-                className="mr-2 hidden h-11 w-40 items-center rounded-xl bg-black/4 pl-3 text-sm text-black/50 transition-all hover:bg-black/6 lg:flex dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10"
-              >
-                <Search aria-hidden className="size-4 shrink-0" />
-                <span className="ml-2">搜索</span>
-              </Link>
-              <Link href="/search" aria-label="搜索" title="搜索" className="btn-plain h-11 w-11 rounded-lg lg:hidden!">
-                <Search aria-hidden className="size-5" />
-              </Link>
+              <SiteSearch />
               <MusicPlayerNav />
               {settings.wallpaperMode !== "none" && bannerIsVideo ? <BannerVideoToggle /> : null}
               {/* key 绑定后台透明度：默认值被后台改动并同步刷新时重新挂载，重新读取访客偏好 */}
