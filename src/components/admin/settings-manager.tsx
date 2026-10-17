@@ -82,19 +82,28 @@ const emptySettings: SiteSettings = {
   themeHue: 165,
   themeMode: "system",
   cardOpacity: 0.6,
+  cardBorderEnabled: false,
+  cardFollowThemeEnabled: false,
   bannerTitle: "",
+  bannerTitleVisible: true,
   bannerSubtitle: "",
   bannerSubtitles: [],
   bannerImageDesktop: "",
   bannerImageMobile: "",
+  bannerImagesDesktop: [],
+  bannerImagesMobile: [],
   bannerVideoPoster: "",
   bannerWaves: true,
+  wallpaperCarouselEnabled: false,
+  wallpaperCarouselInterval: 5,
+  wallpaperCarouselFade: true,
   wallpaperMode: "banner",
   bannerHeightHome: 65,
   bannerHeightNonHome: 45,
   overlayBlur: 0,
   fullscreenBlur: 0,
   typewriterEnabled: true,
+  sakuraEnabled: false,
   showLeftSidebar: true,
   showRightSidebar: true,
   authorName: "",
@@ -109,6 +118,8 @@ export default function SettingsManager() {
   const [form, setForm] = useState<SiteSettings>(emptySettings);
   const [keywordsText, setKeywordsText] = useState("");
   const [subtitlesText, setSubtitlesText] = useState("");
+  const [carouselDesktopText, setCarouselDesktopText] = useState("");
+  const [carouselMobileText, setCarouselMobileText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -121,6 +132,8 @@ export default function SettingsManager() {
         setForm(result.data);
         setKeywordsText(result.data.seoKeywords.join("\n"));
         setSubtitlesText(result.data.bannerSubtitles.join("\n"));
+        setCarouselDesktopText(result.data.bannerImagesDesktop.join("\n"));
+        setCarouselMobileText(result.data.bannerImagesMobile.join("\n"));
       } else {
         setMessage({ type: "error", text: result.error.message });
       }
@@ -139,6 +152,14 @@ export default function SettingsManager() {
         .map((item) => item.trim())
         .filter((item) => item.length > 0),
       bannerSubtitles: subtitlesText
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0),
+      bannerImagesDesktop: carouselDesktopText
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0),
+      bannerImagesMobile: carouselMobileText
         .split(/\r?\n/)
         .map((item) => item.trim())
         .filter((item) => item.length > 0),
@@ -399,6 +420,30 @@ export default function SettingsManager() {
               </span>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="setting-card-border"
+              type="checkbox"
+              checked={form.cardBorderEnabled}
+              onChange={(event) => setForm({ ...form, cardBorderEnabled: event.target.checked })}
+              className="size-4 rounded border-(--line-color) text-sky-600"
+            />
+            <label htmlFor="setting-card-border" className="text-sm text-zinc-600 dark:text-zinc-300">
+              卡片显示边框与阴影
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="setting-card-follow-theme"
+              type="checkbox"
+              checked={form.cardFollowThemeEnabled}
+              onChange={(event) => setForm({ ...form, cardFollowThemeEnabled: event.target.checked })}
+              className="size-4 rounded border-(--line-color) text-sky-600"
+            />
+            <label htmlFor="setting-card-follow-theme" className="text-sm text-zinc-600 dark:text-zinc-300">
+              卡片背景跟随主题色
+            </label>
+          </div>
           <div>
             <label htmlFor="setting-wallpaper-mode" className={labelClass}>
               壁纸模式
@@ -523,7 +568,7 @@ export default function SettingsManager() {
           </div>
         </div>
         <p className="text-xs text-zinc-400 dark:text-zinc-500">
-          色相与透明度会写入全站 CSS 变量并即时预览；壁纸模式、横幅高度与侧栏开关保存后对前台立即生效。
+          色相与透明度会写入全站 CSS 变量并即时预览；卡片边框、主题色跟随、壁纸模式、横幅高度与侧栏开关保存后对前台立即生效。
         </p>
       </div>
 
@@ -563,6 +608,18 @@ export default function SettingsManager() {
               rows={3}
               className={`mt-1.5 ${inputClass}`}
             />
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <input
+              id="setting-banner-title-visible"
+              type="checkbox"
+              checked={form.bannerTitleVisible}
+              onChange={(event) => setForm({ ...form, bannerTitleVisible: event.target.checked })}
+              className="size-4 rounded border-(--line-color) text-sky-600"
+            />
+            <label htmlFor="setting-banner-title-visible" className="text-sm text-zinc-600 dark:text-zinc-300">
+              显示首页横幅标题、副标题与社交入口
+            </label>
           </div>
           <MediaUrlField
             id="setting-banner-desktop"
@@ -608,6 +665,85 @@ export default function SettingsManager() {
             <label htmlFor="setting-banner-waves" className="text-sm text-zinc-600 dark:text-zinc-300">
               显示横幅底部波浪动画
             </label>
+          </div>
+          <div className="space-y-4 rounded-xl border border-zinc-200 p-4 sm:col-span-2 dark:border-zinc-800">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-medium">壁纸轮播</h3>
+                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                  仅支持图片/GIF；视频请继续使用上方单张壁纸字段。启用后优先使用轮播列表。
+                </p>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                <input
+                  id="setting-wallpaper-carousel"
+                  type="checkbox"
+                  checked={form.wallpaperCarouselEnabled}
+                  onChange={(event) => setForm({ ...form, wallpaperCarouselEnabled: event.target.checked })}
+                  className="size-4 rounded border-(--line-color) text-sky-600"
+                />
+                启用轮播
+              </label>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="setting-carousel-interval" className={labelClass}>
+                  切换间隔（3-60 秒）
+                </label>
+                <input
+                  id="setting-carousel-interval"
+                  type="number"
+                  min={3}
+                  max={60}
+                  value={form.wallpaperCarouselInterval}
+                  onChange={(event) =>
+                    setForm({ ...form, wallpaperCarouselInterval: Number.parseInt(event.target.value, 10) || 5 })
+                  }
+                  className={`mt-1.5 ${inputClass}`}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  id="setting-carousel-fade"
+                  type="checkbox"
+                  checked={form.wallpaperCarouselFade}
+                  onChange={(event) => setForm({ ...form, wallpaperCarouselFade: event.target.checked })}
+                  className="size-4 rounded border-(--line-color) text-sky-600"
+                />
+                <label htmlFor="setting-carousel-fade" className="text-sm text-zinc-600 dark:text-zinc-300">
+                  切换时使用渐变过渡
+                </label>
+              </div>
+              <div>
+                <label htmlFor="setting-carousel-desktop" className={labelClass}>
+                  桌面端轮播图片（每行一个地址，最多 10 张）
+                </label>
+                <textarea
+                  id="setting-carousel-desktop"
+                  value={carouselDesktopText}
+                  onChange={(event) => setCarouselDesktopText(event.target.value)}
+                  rows={4}
+                  placeholder="/uploads/壁纸-1.webp&#10;https://example.com/wallpaper-2.jpg"
+                  className={`mt-1.5 ${inputClass}`}
+                />
+              </div>
+              <div>
+                <label htmlFor="setting-carousel-mobile" className={labelClass}>
+                  移动端轮播图片（每行一个地址，留空沿用桌面端）
+                </label>
+                <textarea
+                  id="setting-carousel-mobile"
+                  value={carouselMobileText}
+                  onChange={(event) => setCarouselMobileText(event.target.value)}
+                  rows={4}
+                  placeholder="/uploads/手机壁纸-1.webp&#10;/uploads/手机壁纸-2.webp"
+                  className={`mt-1.5 ${inputClass}`}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              移动端单独配置时只会加载对应尺寸的图片，减少手机流量；留空则按顺序复用桌面图片。关闭轮播或只配置一张图片时保持原有单张壁纸行为。
+            </p>
           </div>
           <div>
             <label htmlFor="setting-site-start" className={labelClass}>
@@ -665,6 +801,23 @@ export default function SettingsManager() {
             />
           </div>
         </div>
+      </div>
+
+      <div className={cardClass}>
+        <h2 className="text-sm font-semibold">页面特效</h2>
+        <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <input
+            id="setting-sakura"
+            type="checkbox"
+            checked={form.sakuraEnabled}
+            onChange={(event) => setForm({ ...form, sakuraEnabled: event.target.checked })}
+            className="size-4 accent-(--primary)"
+          />
+          启用樱花飘落特效
+        </label>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+          关闭时不会加载樱花特效脚本；访客系统开启「减少动态效果」时自动停用动画。
+        </p>
       </div>
 
       <div className={cardClass}>

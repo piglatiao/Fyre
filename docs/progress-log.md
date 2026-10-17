@@ -1320,3 +1320,29 @@
 3. 特效：新增“樱花特效”配置，提供后台开关并保证关闭时不加载相关客户端脚本。
 4. 数据链路：同步扩展 `SiteSettings`、设置校验、服务端归一化/兜底、种子数据与后台设置表单，保持 UTF-8 和最小化改动。
 5. 验证：完成后台表单保存/回显、前台即时生效、桌面 1440px 与 390px 响应式，以及关闭特效后的性能和可访问性回归；随后更新 README、进度文档并构建提交。
+
+## 2026-10-17 18:30-18:46 · 后台显示配置落地与 1440px/390px 回归
+
+**实现**
+- 设置继续存于 `settings` 键值表，无 Prisma migration；新增 `cardBorderEnabled`、`cardFollowThemeEnabled`（默认 `false`），`bannerTitleVisible`（默认 `true`），`bannerImagesDesktop`、`bannerImagesMobile`（默认空），`wallpaperCarouselEnabled`（默认 `false`）、`wallpaperCarouselInterval`（默认 5 秒，范围 3-60）、`wallpaperCarouselFade`（默认 `true`）、`sakuraEnabled`（默认 `false`）。
+- 数据链路已同步 `SiteSettings`、主题配置归一化、Zod 校验、服务端读取兜底、种子数据与后台设置表单；后台分别位于「外观主题」「横幅与个人资料」「页面特效」卡片。
+- 首页标题开关整体控制标题、副标题与社交入口，默认显示；轮播仅接受图片/GIF，每端最多 10 张，移动端留空复用桌面图。
+- 樱花由服务端布局按 `sakuraEnabled` 条件下发 `effects`，不再在客户端外壳用 `next/dynamic` 声明；后台关闭时 HTML 不下发组件，网络请求为 0。`SakuraPetal` 独立到 `src/types/sakura-petal.ts`，轮播参数内联，保持一文件一顶层类型。
+
+**前台行为**
+- 卡片边框/阴影与主题色跟随通过 `.site-wrapper` 的 `data-card-border`、`data-card-follow-theme` 控制，默认关闭；开启后实测卡片背景为 `oklch(1 0.01 165 / 0.6)`，边框 `1px solid`，阴影 `0 1px 2px rgba(0,0,0,0.05)`。
+- 轮播仅保留当前、上一张与下一张幻灯片；桌面和移动端可加载不同图片。自动推进在页面隐藏时暂停，减少动态效果时停止；关闭渐变后 `transition-duration` 为 `0s`。
+- 轮播关闭、只有一张图或没有图片时回落到原有 `BannerMedia`，视频横幅与封面逻辑不变。
+- 樱花画布 `pointer-events:none`、`aria-hidden`，21 片花瓣、DPR 上限 2；页面隐藏时跳过绘制，减少动态效果时不创建动画，沉浸式阅读时 `display:none`。
+
+**验证**
+- 使用独立测试库 `firefly_blog_display_test_1810` 与 `localhost:3001` 副本回归，未写入生产库；生产 `http://localhost:3000` 始终返回 HTTP 200（PID 16672），未重启或终止。
+- 后台表单保存与刷新回显通过，API 回读值和输入值一致；后台 1440px 与 390px 均无横向溢出。
+- 桌面 1440px 轮播 `cover.avif → 1.avif`，3 秒后索引由 0 推进到 1；390px 首张 `currentSrc` 为移动端 `1.avif`，`scrollWidth=390`，无横向溢出。渐变开启时过渡为 `1s`，关闭后为 `0s`。
+- 标题隐藏时 `.banner-home-text-overlay` 不存在，恢复后标题与社交入口回归；关闭轮播与樱花后视频横幅恢复，禁用状态无 `.sakura-canvas`、无 sakura chunk 请求。
+- 樱花开启时均出现 1440x900 画布且连续帧发生变化；减少动态效果下画布为空白 300x150、轮播索引 3.4 秒内不推进；沉浸式阅读下画布隐藏。浏览器异常 0。
+- `pnpm exec tsc --noEmit` 与目标 ESLint 通过；本轮未执行 `pnpm build`。
+- 截图：`%TEMP%/firefly-display-evidence-1810/`（默认/启用 1440px、390px、后台轮播与移动端表单）。
+
+**下一步**
+- 生产构建待明确指示；构建后再在生产产物上复核一次关闭樱花时的客户端 chunk 请求。

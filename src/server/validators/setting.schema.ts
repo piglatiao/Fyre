@@ -109,19 +109,34 @@ export const settingSchema = z.object({
   themeHue: z.coerce.number().int().min(0, "色相不能小于 0").max(360, "色相不能大于 360").default(165),
   themeMode: z.enum(["light", "dark", "system"]).default("system"),
   cardOpacity: z.coerce.number().min(0, "透明度不能小于 0").max(1, "透明度不能大于 1").default(0.6),
+  cardBorderEnabled: z.coerce.boolean().default(false),
+  cardFollowThemeEnabled: z.coerce.boolean().default(false),
   bannerTitle: z.string().trim().max(100, "横幅标题过长").default(""),
+  bannerTitleVisible: z.coerce.boolean().default(true),
   bannerSubtitle: z.string().trim().max(200, "横幅副标题过长").default(""),
   bannerSubtitles: z.array(z.string().trim().max(200, "副标题过长")).max(10, "轮播副标题过多").default([]),
   bannerImageDesktop: z.string().trim().max(500, "桌面横幅地址过长").default(""),
   bannerImageMobile: z.string().trim().max(500, "移动横幅地址过长").default(""),
+  bannerImagesDesktop: z
+    .array(z.string().trim().min(1, "轮播图片地址不能为空").max(500, "轮播图片地址过长"))
+    .max(10, "桌面轮播图片不能超过 10 张")
+    .default([]),
+  bannerImagesMobile: z
+    .array(z.string().trim().min(1, "轮播图片地址不能为空").max(500, "轮播图片地址过长"))
+    .max(10, "移动轮播图片不能超过 10 张")
+    .default([]),
   bannerVideoPoster: z.string().trim().max(500, "横幅视频封面地址过长").default(""),
   bannerWaves: z.coerce.boolean().default(true),
+  wallpaperCarouselEnabled: z.coerce.boolean().default(false),
+  wallpaperCarouselInterval: z.coerce.number().int().min(3, "轮播间隔不能小于 3 秒").max(60, "轮播间隔不能大于 60 秒").default(5),
+  wallpaperCarouselFade: z.coerce.boolean().default(true),
   wallpaperMode: z.enum(["banner", "overlay", "fullscreen", "none"]).default("banner"),
   bannerHeightHome: z.coerce.number().int().min(20, "首页横幅高度不能小于 20").max(100, "首页横幅高度不能大于 100").default(65),
   bannerHeightNonHome: z.coerce.number().int().min(20, "其他页面横幅高度不能小于 20").max(100, "其他页面横幅高度不能大于 100").default(45),
   overlayBlur: z.coerce.number().int().min(0, "模糊值不能小于 0").max(40, "模糊值不能大于 40").default(0),
   fullscreenBlur: z.coerce.number().int().min(0, "模糊值不能小于 0").max(40, "模糊值不能大于 40").default(0),
   typewriterEnabled: z.coerce.boolean().default(true),
+  sakuraEnabled: z.coerce.boolean().default(false),
   showLeftSidebar: z.coerce.boolean().default(true),
   showRightSidebar: z.coerce.boolean().default(true),
   authorName: z.string().trim().max(50, "作者名过长").default(""),

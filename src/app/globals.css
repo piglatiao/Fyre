@@ -179,6 +179,27 @@ body {
   transition: background-color 0.25s ease;
 }
 
+/* 后台显示配置：卡片背景跟随主题色（亮色模式由纯白改为带色相的浅色） */
+.site-wrapper[data-card-follow-theme="true"] {
+  --card-bg: oklch(1 0.01 var(--hue));
+  --card-bg-transparent: oklch(1 0.01 var(--hue) / var(--card-transparent-opacity, 0.6));
+}
+
+:root.dark .site-wrapper[data-card-follow-theme="true"] {
+  --card-bg: oklch(0.23 0.015 var(--hue));
+  --card-bg-transparent: oklch(0.23 0.015 var(--hue) / var(--card-transparent-opacity, 0.6));
+}
+
+/* 后台显示配置：卡片边框与轻阴影，保持卡片原有圆角与背景 */
+.site-wrapper[data-card-border="true"] .card-base {
+  border: 1px solid var(--line-divider);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+:root.dark .site-wrapper[data-card-border="true"] .card-base {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+}
+
 /* 悬浮面板：对齐官网 float-panel，毛玻璃 + 高光描边，叠在横幅上仍清晰 */
 .float-panel {
   border-radius: var(--radius-large);
@@ -1505,6 +1526,51 @@ body {
     oklch(0.63 0.11 calc(var(--hue) + 25)) 50%,
     oklch(0.56 0.09 calc(var(--hue) + 50)) 100%
   );
+}
+
+/* 壁纸轮播：所有幻灯片叠放，仅当前一张可见；渐变过渡由后台开关控制 */
+.banner-carousel,
+.banner-carousel-slide {
+  position: absolute;
+  inset: 0;
+}
+
+.banner-carousel {
+  overflow: hidden;
+}
+
+.banner-carousel-slide {
+  opacity: 0;
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+.banner-carousel-slide.is-active {
+  opacity: 1;
+}
+
+.banner-carousel:not(.banner-carousel--fade) .banner-carousel-slide {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-carousel-slide {
+    transition: none;
+  }
+}
+
+/* 樱花特效画布：覆盖全站但不拦截交互；沉浸式阅读时隐藏 */
+.sakura-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+body.immersive-reading .sakura-canvas {
+  display: none;
 }
 
 /* 视频长时间出不了帧（宿主回收视频图层/解码器）时，让封面缓慢推移，横幅不会看起来是死图 */

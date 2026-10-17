@@ -29,6 +29,20 @@ export function normalizeCardOpacity(value: number | null | undefined): number {
   return Math.min(1, Math.max(0, value));
 }
 
+// 默认壁纸轮播间隔（秒）
+export const DEFAULT_WALLPAPER_CAROUSEL_INTERVAL = 5;
+
+// 归一化壁纸轮播间隔到 3-60 秒，非法值回退默认值
+export function normalizeWallpaperCarouselInterval(
+  value: number | null | undefined,
+  fallback: number = DEFAULT_WALLPAPER_CAROUSEL_INTERVAL,
+): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
+  }
+  return Math.min(60, Math.max(3, Math.round(value)));
+}
+
 // 默认壁纸模式：banner=有顶部横幅
 export const DEFAULT_WALLPAPER_MODE: WallpaperMode = "banner";
 

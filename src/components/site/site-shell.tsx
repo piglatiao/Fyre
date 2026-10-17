@@ -2,9 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { isVideoUrl } from "@/lib/media-url";
 import type { SiteSettings } from "@/types/site-settings";
 import { POST_LIST_LAYOUT_INIT_SCRIPT } from "@/lib/post-list-layout";
 import FloatingControls from "./floating-controls";
+import BannerCarousel from "./banner-carousel";
 import BannerMedia from "./banner-media";
 import BannerHomeOverlay from "./banner-home-overlay";
 import HeaderWaves from "./header-waves";
@@ -18,6 +20,7 @@ export default function SiteShell({
   footer,
   sidebar,
   rightSidebar,
+  effects,
   children,
 }: {
   settings: SiteSettings;
@@ -25,6 +28,8 @@ export default function SiteShell({
   footer: ReactNode;
   sidebar: ReactNode;
   rightSidebar: ReactNode;
+  /** 页面特效：由服务端按设置决定是否下发 */
+  effects?: ReactNode;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -34,6 +39,17 @@ export default function SiteShell({
   // 壁纸模式为 none 时不渲染横幅，内容直接顶到页面顶部
   const showWallpaper = settings.wallpaperMode !== "none";
   const [scrolled, setScrolled] = useState(false);
+  // 轮播列表只接受图片地址；视频仍走原有单张壁纸逻辑
+  const carouselDesktopImages = Array.from(
+    new Set(settings.bannerImagesDesktop.filter((url) => url.length > 0 && !isVideoUrl(url))),
+  );
+  const carouselMobileImages = Array.from(
+    new Set(settings.bannerImagesMobile.filter((url) => url.length > 0 && !isVideoUrl(url))),
+  );
+  const showCarousel =
+    settings.wallpaperCarouselEnabled &&
+    showWallpaper &&
+    Math.max(carouselDesktopImages.length, carouselMobileImages.length) > 1;
 
   // 滚动状态用于切换导航栏的玻璃质感
   useEffect(() => {
@@ -50,6 +66,8 @@ export default function SiteShell({
       className={`site-wrapper${isHome ? " is-home" : ""}${isPostPage ? " is-post" : ""}`}
       data-scrolled={scrolled ? "true" : "false"}
       data-wallpaper={settings.wallpaperMode}
+      data-card-border={settings.cardBorderEnabled ? "true" : "false"}
+      data-card-follow-theme={settings.cardFollowThemeEnabled ? "true" : "false"}
     >
       {/* 首屏内联脚本：尽早应用访客保存的文章列表布局偏好，避免列表布局跳变 */}
       <script dangerouslySetInnerHTML={{ __html: POST_LIST_LAYOUT_INIT_SCRIPT }} />
@@ -71,14 +89,24 @@ export default function SiteShell({
             style={{ backgroundImage: `url("${settings.bannerVideoPoster}")` }}
           />
         ) : null}
-        <BannerMedia
-          desktopUrl={settings.bannerImageDesktop}
-          mobileUrl={settings.bannerImageMobile}
-          videoPoster={settings.bannerVideoPoster}
-        />
+        {showCarousel ? (
+          <BannerCarousel
+            key={`${carouselDesktopImages.join("|")}::${carouselMobileImages.join("|")}`}
+            desktopImages={carouselDesktopImages}
+            mobileImages={carouselMobileImages}
+            intervalSeconds={settings.wallpaperCarouselInterval}
+            fade={settings.wallpaperCarouselFade}
+          />
+        ) : (
+          <BannerMedia
+            desktopUrl={settings.bannerImageDesktop}
+            mobileUrl={settings.bannerImageMobile}
+            videoPoster={settings.bannerVideoPoster}
+          />
+        )}
         <div className="absolute inset-0 bg-black/20 dark:bg-black/25" />
         {settings.bannerWaves ? <HeaderWaves /> : null}
-        {isHome && showWallpaper ? <BannerHomeOverlay settings={settings} /> : null}
+        {isHome && showWallpaper && settings.bannerTitleVisible ? <BannerHomeOverlay settings={settings} /> : null}
         {/* 非首页的横幅标题浮层挂载位（文章页、独立页面） */}
         <div id="banner-overlay-slot" className="absolute inset-0 z-20" />
       </div>
@@ -113,6 +141,7 @@ export default function SiteShell({
       </div>
 
       <FloatingControls />
+      {effects}
     </div>
   );
 }

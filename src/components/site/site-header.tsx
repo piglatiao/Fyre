@@ -19,7 +19,12 @@ export default function SiteHeader({
   navLinks: NavLink[];
 }) {
   // 横幅视频开关：仅当配置了视频壁纸且未关闭壁纸时显示（与官网一致，md 及以上）
-  const bannerIsVideo = isVideoUrl(settings.bannerImageDesktop || settings.bannerImageMobile);
+  const carouselHasImage =
+    settings.wallpaperCarouselEnabled &&
+    [...settings.bannerImagesDesktop, ...settings.bannerImagesMobile].some(
+      (url) => url.length > 0 && !isVideoUrl(url),
+    );
+  const bannerIsVideo = !carouselHasImage && isVideoUrl(settings.bannerImageDesktop || settings.bannerImageMobile);
   return (
     <div id="top-row">
       <div id="navbar-wrapper">

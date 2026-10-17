@@ -5,6 +5,7 @@ import SettingsAutoSync from "@/components/site/settings-auto-sync";
 import SiteFooter from "@/components/site/site-footer";
 import SiteHeader from "@/components/site/site-header";
 import MusicPlayerProvider from "@/components/site/music-player-provider";
+import SakuraEffect from "@/components/site/sakura-effect";
 import SiteShell from "@/components/site/site-shell";
 import AnnouncementCard from "@/components/site/sidebar/announcement-card";
 import CalendarCard from "@/components/site/sidebar/calendar-card";
@@ -57,6 +58,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
     <MusicPlayerProvider tracks={tracks}>
       <SiteShell
         settings={settings}
+        effects={settings.sakuraEnabled ? <SakuraEffect /> : null}
         header={<SiteHeader settings={settings} navLinks={navLinks} />}
         footer={<SiteFooter settings={settings} />}
         sidebar={
