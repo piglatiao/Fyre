@@ -1,0 +1,19 @@
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "../generated/prisma/client";
+
+// Prisma 7 起必须显式传入驱动适配器：MySQL 使用 MariaDB 驱动，连接串来自 DATABASE_URL
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("缺少环境变量 DATABASE_URL，请检查 .env 配置");
+}
+
+const adapter = new PrismaMariaDb(databaseUrl);
+
+// 开发环境热重载会重复执行模块，缓存实例避免连接数膨胀
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
