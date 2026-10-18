@@ -83,7 +83,7 @@ export class PrismaCommentRepository implements CommentRepository {
     targetId: number | null,
     page: number,
     pageSize: number,
-  ): Promise<{ items: SiteComment[]; total: number }> {
+  ): Promise<{ items: Array<Omit<SiteComment, "html">>; total: number }> {
     const where = {
       targetType,
       targetId,

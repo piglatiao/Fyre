@@ -1351,7 +1351,7 @@
 
 **范围**
 - 本轮只补充高级 Markdown、音乐播放与 404；前台显示配置保持现状，不新增官网式“外观 / 壁纸 / 特效”页签。
-- 未执行 `pnpm build`、数据库迁移、提交或推送；临时回归页与 `localhost:3001` 服务已清理，原有 `localhost:3000` 生产进程（PID 16672）未重启。
+- 开发与回归阶段未执行 `pnpm build`、数据库迁移；该批改动后续已提交并推送为 `6c560d5`。临时回归页与 `localhost:3001` 服务已清理，原有 `localhost:3000` 生产进程（PID 16672）未重启。
 
 **高级 Markdown**
 - 已接入 KaTeX 行内/块级公式、Mermaid、PlantUML、Wiki Link 卡片与行内链接；HTML 仍先经 `rehype-sanitize` 白名单过滤。
@@ -1359,6 +1359,7 @@
 - 回归中发现 Mermaid 无法解析 `oklch(...)` 主题变量，已在客户端用画布转换为 RGB 后传入，解决 Mermaid 渲染失败。
 - 回归中发现正文原地更新时复制按钮、图表和灯箱的 effect 不会重新执行，已以正文 HTML 作为 `contentKey` 依赖，验证正文 A/B 切换后三者均重新初始化。
 - 临时页实测公式、Mermaid、PlantUML、Wiki Link、图片灯箱、代码复制入口与图表键盘聚焦均正常；多图灯箱切换显示 `1 / 2 → 2 / 2`。
+- 后台文章、动态、单页与项目编辑器的预览统一复用前台 `MarkdownContent`，修复后台预览中 Mermaid/PlantUML 交互、代码复制按钮与图片灯箱不生效的问题；KaTeX 与 Wiki Link 原本已由服务端渲染。
 
 **音乐**
 - Prisma `MusicTrack` 增加 `lyrics String? @db.LongText`，迁移文件为 `prisma/migrations/20261017190000_add_music_track_lyrics/migration.sql`，本轮未执行迁移。
@@ -1378,8 +1379,25 @@
 - 临时回归页在 1440px 与 390px 均完成截图：Mermaid/PlantUML 为 `ready`，公式、Wiki Link、双图灯箱与代码块正常；两视口 `scrollWidth` 分别等于 1440/390，无横向溢出；控制台业务错误 0。
 - 1440px 实测 Mermaid 视口 `scrollHeight 879 / clientHeight 608` 可滚动；390px 图表完整显示。缩放 `1 → 1.25`、复位、原生全屏与退出均通过；灯箱 Esc 关闭后焦点恢复到触发图片。
 - `pnpm exec tsc --noEmit` 通过；47 个相关 TS/TSX 文件 `eslint --max-warnings=0` 通过；本轮未执行 `pnpm build`。
+- 后台预览对齐后，两个编辑器的目标 ESLint 检查再次通过。
 - 验证截图：`output/playwright/regression-final-1440.png`、`output/playwright/regression-final-390.png`、`output/playwright/lightbox-390-second.png`（临时回归页已删除）。
 
 **当前边界**
 - 部署前必须先应用 `20261017190000_add_music_track_lyrics` 迁移；否则所有需要查询音乐列表的前台/后台布局都会因缺列失败。
-- 在线 Meting 还需要在目标网络环境验证主 API、备用 API、歌词代理与跨域资源；本轮未构建、未迁移、未提交、未推送。
+- 在线 Meting 还需要在目标网络环境验证主 API、备用 API、歌词代理与跨域资源；本轮未构建、未迁移，后续已提交并推送为 `6c560d5`。
+
+## 2026-10-18 · Markdown 插入工具与评论渲染补齐
+
+**高级 Markdown 编辑**
+- `MarkdownEditor` 与文章编辑器新增共用工具栏，可插入行内公式、块级公式、Mermaid、PlantUML 与 Wiki Link 模板；插入动作定位到光标处，并把焦点和光标放回模板占位内容。
+- 工具栏沿用后台现有 32px 控件、明暗主题和焦点样式，在移动端自动换行，不改变编辑器保存格式。
+- 文章、动态、单页与项目的服务端预览继续复用前台 `MarkdownContent`，后台可直接验证高级语法效果。
+
+**评论 Markdown**
+- 评论数据库仍保存原始 Markdown；前台 `GET /api/comments` 与后台评论列表在服务层调用 `renderMarkdown`，返回附带的消毒 HTML，不把渲染结果写回数据库。
+- 前台评论列表与后台审核列表统一使用 `MarkdownContent`；评论输入框补充 Markdown 提示，普通文本的独立换行通过 `comment-markdown` 样式保留。
+- 评论 HTML 沿用统一白名单消毒流程，保留标题、列表、代码、链接、公式与现有扩展的渲染能力。
+
+**验证**
+- `pnpm exec tsc --noEmit` 通过；本轮变更的组件、服务、仓储与类型文件通过目标 ESLint `--max-warnings=0` 检查。
+- 为避免影响监听 3000 端口的既有生产进程，并等待 `lyrics` 迁移应用，本轮未执行 `pnpm build`、数据库迁移或服务重启。

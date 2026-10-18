@@ -1,4 +1,5 @@
 import type { CommentStatus } from "@/generated/prisma/client";
+import { renderMarkdown } from "@/lib/markdown";
 import type { AdminCommentRepository } from "@/server/repositories/admin-comment.repository.interface";
 import type { AdminCommentListParams } from "@/types/admin-comment-list-params";
 import type { AdminCommentPage } from "@/types/admin-comment-page";
@@ -14,7 +15,19 @@ export class DefaultAdminCommentService implements AdminCommentService {
     const pageSize = Number.isFinite(params.pageSize)
       ? Math.min(100, Math.max(1, Math.round(params.pageSize)))
       : 20;
-    return this.comments.findPage({ ...params, page, pageSize, keyword: params.keyword?.trim() || undefined });
+    const result = await this.comments.findPage({
+      ...params,
+      page,
+      pageSize,
+      keyword: params.keyword?.trim() || undefined,
+    });
+    const items = await Promise.all(
+      result.items.map(async (comment) => ({
+        ...comment,
+        html: (await renderMarkdown(comment.content)).html,
+      })),
+    );
+    return { ...result, items };
   }
 
   async updateStatus(id: number, status: CommentStatus): Promise<void> {

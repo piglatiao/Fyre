@@ -14,7 +14,7 @@ export interface CommentRepository {
     targetId: number | null,
     page: number,
     pageSize: number,
-  ): Promise<{ items: SiteComment[]; total: number }>;
+  ): Promise<{ items: Array<Omit<SiteComment, "html">>; total: number }>;
   // 写入评论并返回审核状态
   create(input: CommentCreateData): Promise<CommentSubmitResult>;
 }

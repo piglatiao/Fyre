@@ -122,12 +122,12 @@ export default function CommentForm({
           onChange={(event) => setContent(event.target.value)}
           rows={4}
           maxLength={2000}
-          placeholder="留下你的想法…"
+          placeholder="留下你的想法…支持 Markdown 语法"
           className={`${inputClass} resize-y leading-7`}
           required
         />
         <div className="mt-1.5 flex items-center justify-between gap-3 text-xs text-(--content-meta)">
-          <span>{requireApproval ? "提交后需审核，通过后公开显示。" : "评论将直接公开，请友善交流。"}</span>
+          <span>支持 Markdown。{requireApproval ? "提交后需审核，通过后公开显示。" : "评论将直接公开，请友善交流。"}</span>
           <span className="shrink-0 tabular-nums">{content.length} / 2000</span>
         </div>
       </div>

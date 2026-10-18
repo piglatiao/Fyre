@@ -3,9 +3,11 @@
 import { ImagePlus } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import MarkdownContent from "@/components/site/markdown-content";
 import { requestJson, requestJsonBody } from "@/lib/api-client";
 import type { MarkdownResult } from "@/types/markdown-result";
 import type { MediaFile } from "@/types/media-file";
+import MarkdownInsertToolbar from "./markdown-insert-toolbar";
 
 // 预览防抖时长（毫秒）：与文章编辑器保持一致
 const PREVIEW_DEBOUNCE_MS = 600;
@@ -39,8 +41,8 @@ export default function MarkdownEditor({
     return () => clearTimeout(timer);
   }, [value]);
 
-  // 在光标处插入文本片段
-  function insertAtCursor(snippet: string): void {
+  // 在光标处插入文本片段，可把光标定位到模板占位内容处
+  function insertAtCursor(snippet: string, caretOffset = snippet.length): void {
     const textarea = textareaRef.current;
     if (!textarea) {
       onChange(`${value}\n${snippet}\n`);
@@ -51,7 +53,7 @@ export default function MarkdownEditor({
     onChange(`${value.slice(0, start)}${snippet}${value.slice(end)}`);
     requestAnimationFrame(() => {
       textarea.focus();
-      const position = start + snippet.length;
+      const position = start + caretOffset;
       textarea.setSelectionRange(position, position);
     });
   }
@@ -100,6 +102,7 @@ export default function MarkdownEditor({
           </button>
         </div>
       </div>
+      <MarkdownInsertToolbar onInsert={insertAtCursor} />
       <div className="grid divide-y divide-zinc-200 lg:grid-cols-2 lg:divide-x lg:divide-y-0 dark:divide-zinc-800">
         <textarea
           ref={textareaRef}
@@ -111,7 +114,7 @@ export default function MarkdownEditor({
         />
         <div className="max-h-[36rem] min-h-96 overflow-y-auto p-5">
           {preview.html ? (
-            <div className="article-body" dangerouslySetInnerHTML={{ __html: preview.html }} />
+            <MarkdownContent html={preview.html} />
           ) : (
             <p className="text-sm text-zinc-400 dark:text-zinc-500">输入内容后这里会显示渲染预览。</p>
           )}

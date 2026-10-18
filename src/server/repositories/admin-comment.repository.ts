@@ -2,7 +2,6 @@ import { CommentStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { AdminCommentItem } from "@/types/admin-comment-item";
 import type { AdminCommentListParams } from "@/types/admin-comment-list-params";
-import type { AdminCommentPage } from "@/types/admin-comment-page";
 import type { CommentStatusCounts } from "@/types/comment-status-counts";
 import type { AdminCommentRepository } from "./admin-comment.repository.interface";
 
@@ -46,7 +45,13 @@ function toAdminCommentItem(row: {
 
 // 基于 Prisma 的后台评论仓储实现
 export class PrismaAdminCommentRepository implements AdminCommentRepository {
-  async findPage(params: AdminCommentListParams): Promise<AdminCommentPage> {
+  async findPage(params: AdminCommentListParams): Promise<{
+    items: AdminCommentItem[];
+    total: number;
+    page: number;
+    pageSize: number;
+    counts: CommentStatusCounts;
+  }> {
     const where: Prisma.CommentWhereInput = {
       ...(params.status ? { status: params.status } : {}),
       ...(params.targetType ? { targetType: params.targetType } : {}),

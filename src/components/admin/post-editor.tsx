@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, ClipboardEvent, DragEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import MarkdownContent from "@/components/site/markdown-content";
 import { requestJson, requestJsonBody } from "@/lib/api-client";
 import { fromLocalInputValue, toLocalInputValue } from "@/lib/datetime-input";
 import { parseFrontMatter, readListValue } from "@/lib/markdown-front-matter";
@@ -17,6 +18,7 @@ import { uploadMediaFile } from "@/lib/upload-media-file";
 import type { TagItem } from "@/types/tag-item";
 import MediaPickerDialog from "./media-picker-dialog";
 import MediaUrlField from "./media-url-field";
+import MarkdownInsertToolbar from "./markdown-insert-toolbar";
 
 // 状态选项
 const STATUS_OPTIONS: { value: PostStatus; label: string }[] = [
@@ -129,7 +131,7 @@ export default function PostEditor({ postId }: { postId?: number }) {
   }, [content]);
 
   // 在光标处插入文本片段（用函数式更新，连续插入多张图片时不会互相覆盖）
-  function insertAtCursor(snippet: string): void {
+  function insertAtCursor(snippet: string, caretOffset = snippet.length): void {
     const textarea = textareaRef.current;
     if (!textarea) {
       setContent((current) => `${current}\n${snippet}\n`);
@@ -140,7 +142,7 @@ export default function PostEditor({ postId }: { postId?: number }) {
     setContent((current) => `${current.slice(0, start)}${snippet}${current.slice(end)}`);
     requestAnimationFrame(() => {
       textarea.focus();
-      const position = start + snippet.length;
+      const position = start + caretOffset;
       textarea.setSelectionRange(position, position);
     });
   }
@@ -446,6 +448,7 @@ export default function PostEditor({ postId }: { postId?: number }) {
                 </button>
               </div>
             </div>
+            <MarkdownInsertToolbar onInsert={insertAtCursor} />
             <div className="grid divide-y divide-zinc-200 lg:grid-cols-2 lg:divide-x lg:divide-y-0 dark:divide-zinc-800">
               <textarea
                 ref={textareaRef}
@@ -464,7 +467,7 @@ export default function PostEditor({ postId }: { postId?: number }) {
               />
               <div className="max-h-[36rem] min-h-96 overflow-y-auto p-5">
                 {preview.html ? (
-                  <div className="article-body" dangerouslySetInnerHTML={{ __html: preview.html }} />
+                  <MarkdownContent html={preview.html} />
                 ) : (
                   <p className="text-sm text-zinc-400 dark:text-zinc-500">输入正文后这里会显示渲染预览。</p>
                 )}

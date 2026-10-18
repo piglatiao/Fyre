@@ -1,4 +1,5 @@
 import { MessageCircle } from "lucide-react";
+import MarkdownContent from "@/components/site/markdown-content";
 import type { SiteComment } from "@/types/site-comment";
 
 const commentDateFormatter = new Intl.DateTimeFormat("zh-CN", {
@@ -15,7 +16,7 @@ function isSafeWebsite(value: string): boolean {
   return /^https?:\/\//i.test(value);
 }
 
-// 公开评论列表：纯文本安全渲染，展示昵称、时间、网站与正文
+// 公开评论列表：Markdown HTML 已由服务端消毒，展示昵称、时间、网站与正文
 export default function CommentList({ comments }: { comments: SiteComment[] }) {
   if (comments.length === 0) {
     return (
@@ -58,9 +59,7 @@ export default function CommentList({ comments }: { comments: SiteComment[] }) {
                   {commentDateFormatter.format(new Date(comment.createdAt))}
                 </time>
               </div>
-              <p className="mt-2 break-words whitespace-pre-wrap text-sm leading-7 text-neutral-700 dark:text-neutral-300">
-                {comment.content}
-              </p>
+              <MarkdownContent html={comment.html} className="comment-markdown mt-2" />
             </div>
           </li>
         );

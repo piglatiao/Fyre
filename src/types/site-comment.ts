@@ -4,5 +4,6 @@ export interface SiteComment {
   authorName: string;
   authorWebsite: string;
   content: string;
+  html: string;
   createdAt: string;
 }

@@ -1,5 +1,6 @@
 import { CommentStatus } from "@/generated/prisma/client";
 import type { CommentTargetType } from "@/generated/prisma/client";
+import { renderMarkdown } from "@/lib/markdown";
 import type { CommentRepository } from "@/server/repositories/comment.repository.interface";
 import type { CommentSubmission } from "@/types/comment-submission";
 import type { CommentSubmitResult } from "@/types/comment-submit-result";
@@ -30,7 +31,13 @@ export class DefaultCommentService implements CommentService {
       throw new ServiceError("comment_target_not_found", "评论目标不存在或尚未发布");
     }
     const result = await this.comments.findApprovedPage(targetType, targetId, page, pageSize);
-    return { ...result, page, pageSize };
+    const items = await Promise.all(
+      result.items.map(async (comment) => ({
+        ...comment,
+        html: (await renderMarkdown(comment.content)).html,
+      })),
+    );
+    return { ...result, items, page, pageSize };
   }
 
   async create(input: CommentSubmission): Promise<CommentSubmitResult> {

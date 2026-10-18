@@ -1028,6 +1028,37 @@ body {
   margin: 1.1em 0;
 }
 
+/* 评论 Markdown：沿用正文排版，同时保留普通文本换行并收紧标题层级 */
+.comment-markdown {
+  font-size: 0.875rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.comment-markdown p {
+  white-space: pre-wrap;
+}
+
+.comment-markdown > :first-child {
+  margin-top: 0;
+}
+
+.comment-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.comment-markdown h2 {
+  font-size: 1.125rem;
+}
+
+.comment-markdown h3 {
+  font-size: 1rem;
+}
+
+.comment-markdown h4 {
+  font-size: 0.9375rem;
+}
+
 .article-body h2,
 .article-body h3,
 .article-body h4 {

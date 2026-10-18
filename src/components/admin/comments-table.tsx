@@ -3,10 +3,11 @@
 import { Check, EyeOff, Mail, RotateCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import MarkdownContent from "@/components/site/markdown-content";
 import type { CommentStatus } from "@/generated/prisma/client";
 import { requestJsonBody } from "@/lib/api-client";
 import { COMMENT_STATUS_LABELS, COMMENT_TARGET_LABELS } from "@/lib/comment-labels";
-import type { AdminCommentItem } from "@/types/admin-comment-item";
+import type { AdminCommentView } from "@/types/admin-comment-view";
 
 const commentDateFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
@@ -34,7 +35,7 @@ function statusClass(status: CommentStatus): string {
 }
 
 // 后台评论列表：通过、隐藏、恢复待审与删除操作
-export default function CommentsTable({ items }: { items: AdminCommentItem[] }) {
+export default function CommentsTable({ items }: { items: AdminCommentView[] }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -120,9 +121,7 @@ export default function CommentsTable({ items }: { items: AdminCommentItem[] }) 
               </time>
             </div>
 
-            <p className="mt-4 break-words whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">
-              {item.content}
-            </p>
+            <MarkdownContent html={item.html} className="comment-markdown mt-4" />
 
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-500 dark:text-zinc-400">
               {item.authorEmail ? (
