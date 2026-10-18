@@ -1351,7 +1351,7 @@
 
 **范围**
 - 本轮只补充高级 Markdown、音乐播放与 404；前台显示配置保持现状，不新增官网式“外观 / 壁纸 / 特效”页签。
-- 开发与回归阶段未执行 `pnpm build`、数据库迁移；该批改动后续已提交并推送为 `6c560d5`。临时回归页与 `localhost:3001` 服务已清理，原有 `localhost:3000` 生产进程（PID 16672）未重启。
+- 开发与回归阶段未执行 `pnpm build`、数据库迁移；该批改动后续已提交并推送为 `6c560d5`，迁移与完整构建已在后续收口回归中完成。临时回归页与 `localhost:3001` 服务已清理，原有 `localhost:3000` 生产进程（PID 16672）未重启。
 
 **高级 Markdown**
 - 已接入 KaTeX 行内/块级公式、Mermaid、PlantUML、Wiki Link 卡片与行内链接；HTML 仍先经 `rehype-sanitize` 白名单过滤。
@@ -1362,7 +1362,7 @@
 - 后台文章、动态、单页与项目编辑器的预览统一复用前台 `MarkdownContent`，修复后台预览中 Mermaid/PlantUML 交互、代码复制按钮与图片灯箱不生效的问题；KaTeX 与 Wiki Link 原本已由服务端渲染。
 
 **音乐**
-- Prisma `MusicTrack` 增加 `lyrics String? @db.LongText`，迁移文件为 `prisma/migrations/20261017190000_add_music_track_lyrics/migration.sql`，本轮未执行迁移。
+- Prisma `MusicTrack` 增加 `lyrics String? @db.LongText`，迁移文件为 `prisma/migrations/20261017190000_add_music_track_lyrics/migration.sql`；开发阶段未执行迁移，本地库已在后续收口回归前应用。
 - 后台音乐表单增加 LRC 歌词文本域；`parse-lrc` 支持 `[mm:ss]`、`[mm:ss.xx]`、`[mm:ss.xxx]` 与一行多时间戳，播放器提供歌词抽屉、当前行高亮、点击跳转、用户滚动后暂停自动跟随三秒、歌词/列表互斥。
 - 新增 Meting 在线歌单：后台可配置音乐来源、主/备 API、平台、类型、歌单 ID 与认证信息；服务端主 API 失败后按顺序回退，结果缓存五分钟；认证信息不进入前台客户端。
 - 新增同源歌词代理 `/api/music/lyrics`，服务端用 HMAC 令牌只允许签发地址，限制 HTTP(S)、常见本机/私网地址、超时与文件大小；在线歌词请求失败不影响音频播放。
@@ -1373,7 +1373,7 @@
 **404**
 - 发现 `(site)/not-found.tsx` 只覆盖组内 `notFound()`，完全未匹配的 URL 仍显示框架默认英文 404；已新增 `(site)/[...notFound]/page.tsx` 兜底调用 `notFound()`。
 - 404 页面保留前台布局、`SiteNotFound` 卡片和横幅标题；1440px 显示 `404` 横幅标题，390px 按既有响应式规则隐藏标题。
-- 临时回归页已验证 404 卡片与横幅浮层组合；真实不存在 URL 已触发前台布局兜底，但因开发库尚未执行 `lyrics` 迁移，查询 `music_tracks.lyrics` 返回 500，真实 404 全页需在迁移后复验。
+- 临时回归页已验证 404 卡片与横幅浮层组合；当时因开发库尚未执行 `lyrics` 迁移，真实 404 全页查询返回 500。迁移应用后，未匹配地址、文章不存在与页面不存在三种入口已在 1440px/390px 复验，详见下一节。
 
 **验证**
 - 临时回归页在 1440px 与 390px 均完成截图：Mermaid/PlantUML 为 `ready`，公式、Wiki Link、双图灯箱与代码块正常；两视口 `scrollWidth` 分别等于 1440/390，无横向溢出；控制台业务错误 0。
@@ -1384,7 +1384,7 @@
 
 **当前边界**
 - 部署前必须先应用 `20261017190000_add_music_track_lyrics` 迁移；否则所有需要查询音乐列表的前台/后台布局都会因缺列失败。
-- 在线 Meting 还需要在目标网络环境验证主 API、备用 API、歌词代理与跨域资源；本轮未构建、未迁移，后续已提交并推送为 `6c560d5`。
+- 在线 Meting 还需要在目标网络环境验证主 API、备用 API、歌词代理与跨域资源；该批次已提交并推送为 `6c560d5`，迁移、构建与生产回归在后续收口章节完成。
 
 ## 2026-10-18 · Markdown 插入工具与评论渲染补齐
 
@@ -1400,4 +1400,35 @@
 
 **验证**
 - `pnpm exec tsc --noEmit` 通过；本轮变更的组件、服务、仓储与类型文件通过目标 ESLint `--max-warnings=0` 检查。
-- 为避免影响监听 3000 端口的既有生产进程，并等待 `lyrics` 迁移应用，本轮未执行 `pnpm build`、数据库迁移或服务重启。
+- 为避免影响监听 3000 端口的既有生产进程，并等待 `lyrics` 迁移应用，本轮未执行 `pnpm build`、数据库迁移或服务重启；该迁移与构建已在后续收口回归中完成。
+
+## 2026-10-18 09:xx · 官网对照回归、404 水合标题与移动端音乐面板收口
+
+**官网对照范围**
+- 对官网与本地生产构建逐页对照首页、文章、归档、分类、标签、系列、动态、项目、相册、友链、留言、打赏、关于、书签、哔哩哔哩、Bangumi、VNDB、MyAnimeList、搜索、订阅与 404，覆盖 1440px 与 390px。
+- 同名路由与前、后台页面结构已基本齐备。官网现有 13 篇文章，本地演示库为 3 篇，部分列表为空属于内容数据差异而非功能缺口。
+- 官网绿色主题、分组导航与本地粉色主题、扁平导航均为后台可配置结果，本轮保持现有配置，不重做主题；前台显示设置仍为主题模式、卡片透明度与文章布局，不新增官网式「外观 / 壁纸 / 特效」页签。
+- 官网动态、VNDB 与 MyAnimeList 的少量外链封面存在断图；本地同路由巡检未发现断图。
+
+**本轮收口**
+- 嵌套 `(site)/not-found.tsx` 导出的静态 metadata 会在客户端水合后被站点默认标题覆盖。新增仅随 404 页面挂载的客户端标题守卫，在标题被路由元数据改写时恢复为「404 · 站点名」，卸载时断开监听，不影响正常页面标题。
+- 未匹配地址、`/posts/*` 文章不存在与 `/page/*` 页面不存在三种入口均返回 HTTP 404、`noindex`，水合后标题稳定为「404 · 流萤」，卡片、横幅与前台布局保持不变。
+- 390px 导航栏音乐浮层原先右对齐到按钮，左边缘越出视口约 11.5px；改为移动端在视口内右对齐并保留 320px 上限，桌面端继续相对按钮定位。实测浮层范围 `x=96–376px`，页面无横向溢出。
+
+**回归结果**
+- 前台 22 个目标路由 × 1440px/390px 共 44 次访问通过：预期页面均为 HTTP 200，三种 404 为 HTTP 404；无横向溢出、断图、页面异常或非预期控制台错误，404 仅保留浏览器对 HTTP 404 请求的预期资源记录。
+- 后台 17 个管理路由 × 1440px/390px 共 34 次访问全部通过：均为 HTTP 200，无横向溢出、断图、控制台错误或页面异常；仪表盘、文章编辑与各管理页标题正确。
+- 显示设置、卡片边框与阴影、卡片跟随主题色、首页标题显隐、壁纸轮播与渐变过渡、樱花特效、移动导航抽屉与即时搜索均已完成交互核验。
+- 高级 Markdown 工具栏、光标插入、公式 / Mermaid / PlantUML / Wiki Link 预览，评论 Markdown 渲染，音乐歌词 / 列表 / 在线回退，沉浸式阅读、目录与图片灯箱均已通过 1440px/390px 回归；临时文章 ID 11 与临时评论 ID 55 已删除，评论接口当前总数为 0。
+- RSS / Atom 各 2 条，站点地图 29 个 URL，`robots.txt` 包含 Sitemap；`/rss`、`/rss.xml`、`/atom`、`/atom.xml`、`/sitemap.xml`、`/sitemap-index.xml` 与 `/robots.txt` 均返回 HTTP 200。
+- `pnpm exec tsc --noEmit`、本轮相关文件 ESLint `--max-warnings=0` 与 `pnpm build` 均通过，生产构建生成 33 个静态页面；生产服务在 3000 端口完成上述回归。
+- `pnpm exec prisma migrate status` 显示 12 个迁移且数据库 schema 已是最新，`20261017190000_add_music_track_lyrics` 已实际应用。
+
+**证据**
+- 前后台回归明细：`output/playwright/audit-final-after-fix.json`、`output/playwright/audit-admin-after-fix.json`。
+- 404 与音乐面板截图：`output/playwright/audit-final-404-1440.png`、`output/playwright/audit-final-404-390.png`、`output/playwright/audit-final-music-390.png`。
+- 官网与本地首页、文章页对照截图：`output/playwright/audit-20261018-home-local-1440.png`、`output/playwright/audit-20261018-home-official-1440.png`、`output/playwright/audit-20261018-home-local-390.png`、`output/playwright/audit-20261018-home-official-390.png`、`output/playwright/audit-20261018-post-local-1440.png`、`output/playwright/audit-20261018-post-official-1440.png`。
+
+**注意事项**
+1. 新环境部署仍须先执行 `pnpm db:deploy`（生产）或 `pnpm db:migrate`（开发）应用 `20261017190000_add_music_track_lyrics`。本地库虽已是最新，但目标环境未执行时，前台与后台布局查询 `music_tracks.lyrics` 会失败。
+2. 在线 Meting 的主 API、备用 API、歌词代理与跨域资源仍需在目标网络环境实测。本机此前访问默认公网主 API 出现 TLS/SSL 握手失败，当前已验证服务端超时、顺序回退与本地曲库回退链路，但不能据此断言目标网络可用。

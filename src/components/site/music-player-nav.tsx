@@ -35,7 +35,7 @@ export default function MusicPlayerNav() {
             className="fixed inset-0 z-40 cursor-default"
             onClick={() => setOpen(false)}
           />
-          <div className="float-panel absolute top-full right-0 z-50 mt-2 w-80 p-2 pt-4.5">
+          <div className="float-panel fixed top-20 right-4 z-50 w-[calc(100vw-2rem)] max-w-80 p-2 pt-4.5 md:absolute md:top-full md:right-0 md:mt-2 md:w-80">
             <MusicPlayerPanel />
           </div>
         </>

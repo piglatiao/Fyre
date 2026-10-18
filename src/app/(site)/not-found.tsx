@@ -1,12 +1,18 @@
 import { CircleAlert, Home } from "lucide-react";
 import Link from "next/link";
 import BannerPortal from "@/components/site/banner-portal";
+import NotFoundTitle from "@/components/site/not-found-title";
 import PageBannerOverlay from "@/components/site/page-banner-overlay";
+import { createSiteServices } from "@/server/services/service-container";
 
 // 前台 404：文章或页面不存在时展示（对齐官网 404 的卡片样式）
-export default function SiteNotFound() {
+export default async function SiteNotFound() {
+  const { settingService } = createSiteServices();
+  const settings = await settingService.getSiteSettings();
+
   return (
     <div className="card-base relative flex flex-col items-center overflow-hidden rounded-(--radius-large) px-6 py-16 text-center">
+      <NotFoundTitle siteName={settings.siteName} />
       {/* 背景水印与角落装饰 */}
       <span
         aria-hidden
