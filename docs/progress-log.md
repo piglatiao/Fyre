@@ -1346,3 +1346,40 @@
 
 **下一步**
 - 生产构建待明确指示；构建后再在生产产物上复核一次关闭樱花时的客户端 chunk 请求。
+
+## 2026-10-18 00:04-00:28 · 高级 Markdown、音乐歌词/在线歌单与 404 回归
+
+**范围**
+- 本轮只补充高级 Markdown、音乐播放与 404；前台显示配置保持现状，不新增官网式“外观 / 壁纸 / 特效”页签。
+- 未执行 `pnpm build`、数据库迁移、提交或推送；临时回归页与 `localhost:3001` 服务已清理，原有 `localhost:3000` 生产进程（PID 16672）未重启。
+
+**高级 Markdown**
+- 已接入 KaTeX 行内/块级公式、Mermaid、PlantUML、Wiki Link 卡片与行内链接；HTML 仍先经 `rehype-sanitize` 白名单过滤。
+- 图表增加缩放、复位、全屏、失败源码展开、主题切换重渲染与键盘聚焦滚动；正文图片增加灯箱，支持多图前后切换、方向键、Esc、焦点恢复与滚动锁定。
+- 回归中发现 Mermaid 无法解析 `oklch(...)` 主题变量，已在客户端用画布转换为 RGB 后传入，解决 Mermaid 渲染失败。
+- 回归中发现正文原地更新时复制按钮、图表和灯箱的 effect 不会重新执行，已以正文 HTML 作为 `contentKey` 依赖，验证正文 A/B 切换后三者均重新初始化。
+- 临时页实测公式、Mermaid、PlantUML、Wiki Link、图片灯箱、代码复制入口与图表键盘聚焦均正常；多图灯箱切换显示 `1 / 2 → 2 / 2`。
+
+**音乐**
+- Prisma `MusicTrack` 增加 `lyrics String? @db.LongText`，迁移文件为 `prisma/migrations/20261017190000_add_music_track_lyrics/migration.sql`，本轮未执行迁移。
+- 后台音乐表单增加 LRC 歌词文本域；`parse-lrc` 支持 `[mm:ss]`、`[mm:ss.xx]`、`[mm:ss.xxx]` 与一行多时间戳，播放器提供歌词抽屉、当前行高亮、点击跳转、用户滚动后暂停自动跟随三秒、歌词/列表互斥。
+- 新增 Meting 在线歌单：后台可配置音乐来源、主/备 API、平台、类型、歌单 ID 与认证信息；服务端主 API 失败后按顺序回退，结果缓存五分钟；认证信息不进入前台客户端。
+- 新增同源歌词代理 `/api/music/lyrics`，服务端用 HMAC 令牌只允许签发地址，限制 HTTP(S)、常见本机/私网地址、超时与文件大小；在线歌词请求失败不影响音频播放。
+- 修正默认备用 API 在旧设置缺少字段时被空数组覆盖的问题；Meting 缓存改为类级缓存，避免每次请求新建服务实例后缓存失效。
+- 临时本地音频实测：歌词抽屉可打开，点击行显示对应高亮并跳转到 `0:01`，播放后高亮推进到第六行；打开播放列表会关闭歌词抽屉，反向亦然，390px 无横向溢出。
+- 在线 Meting 真实外网联调未完成：本机访问默认公网 API 出现 TLS/SSL 握手失败，当前只完成服务端逻辑、超时/回退链路与本地回退路径的代码级验证。
+
+**404**
+- 发现 `(site)/not-found.tsx` 只覆盖组内 `notFound()`，完全未匹配的 URL 仍显示框架默认英文 404；已新增 `(site)/[...notFound]/page.tsx` 兜底调用 `notFound()`。
+- 404 页面保留前台布局、`SiteNotFound` 卡片和横幅标题；1440px 显示 `404` 横幅标题，390px 按既有响应式规则隐藏标题。
+- 临时回归页已验证 404 卡片与横幅浮层组合；真实不存在 URL 已触发前台布局兜底，但因开发库尚未执行 `lyrics` 迁移，查询 `music_tracks.lyrics` 返回 500，真实 404 全页需在迁移后复验。
+
+**验证**
+- 临时回归页在 1440px 与 390px 均完成截图：Mermaid/PlantUML 为 `ready`，公式、Wiki Link、双图灯箱与代码块正常；两视口 `scrollWidth` 分别等于 1440/390，无横向溢出；控制台业务错误 0。
+- 1440px 实测 Mermaid 视口 `scrollHeight 879 / clientHeight 608` 可滚动；390px 图表完整显示。缩放 `1 → 1.25`、复位、原生全屏与退出均通过；灯箱 Esc 关闭后焦点恢复到触发图片。
+- `pnpm exec tsc --noEmit` 通过；47 个相关 TS/TSX 文件 `eslint --max-warnings=0` 通过；本轮未执行 `pnpm build`。
+- 验证截图：`output/playwright/regression-final-1440.png`、`output/playwright/regression-final-390.png`、`output/playwright/lightbox-390-second.png`（临时回归页已删除）。
+
+**当前边界**
+- 部署前必须先应用 `20261017190000_add_music_track_lyrics` 迁移；否则所有需要查询音乐列表的前台/后台布局都会因缺列失败。
+- 在线 Meting 还需要在目标网络环境验证主 API、备用 API、歌词代理与跨域资源；本轮未构建、未迁移、未提交、未推送。

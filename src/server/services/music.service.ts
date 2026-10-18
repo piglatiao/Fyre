@@ -12,11 +12,12 @@ export class DefaultMusicService implements MusicService {
   async listPublic(): Promise<MusicTrack[]> {
     const rows = await this.tracks.listAll();
     return rows.map((row) => ({
-      id: row.id,
+      id: String(row.id),
       title: row.title,
       artist: row.artist,
       audioUrl: row.audioUrl,
       coverUrl: row.coverUrl,
+      lyrics: row.lyrics ?? "",
     }));
   }
 

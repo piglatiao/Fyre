@@ -5,6 +5,7 @@ export interface AdminMusicTrackItem {
   artist: string;
   audioUrl: string;
   coverUrl: string;
+  lyrics: string;
   sortOrder: number;
   createdAt: Date;
 }

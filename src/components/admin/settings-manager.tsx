@@ -84,6 +84,16 @@ const emptySettings: SiteSettings = {
   cardOpacity: 0.6,
   cardBorderEnabled: false,
   cardFollowThemeEnabled: false,
+  musicMode: "local",
+  musicMetingApi: "https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&r=:r",
+  musicMetingFallbackApis: [
+    "https://api.injahow.cn/meting/?server=:server&type=:type&id=:id",
+    "https://api.moeyao.cn/meting/?server=:server&type=:type&id=:id",
+  ],
+  musicMetingServer: "netease",
+  musicMetingType: "playlist",
+  musicMetingId: "10046455237",
+  musicMetingAuth: "",
   bannerTitle: "",
   bannerTitleVisible: true,
   bannerSubtitle: "",
@@ -818,6 +828,118 @@ export default function SettingsManager() {
         <p className="text-xs text-zinc-400 dark:text-zinc-500">
           关闭时不会加载樱花特效脚本；访客系统开启「减少动态效果」时自动停用动画。
         </p>
+      </div>
+
+      <div className={cardClass}>
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold">音乐播放</h2>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+            本地模式使用「音乐管理」中的曲目；在线模式由服务端拉取 Meting 歌单，失败时自动回落到本地曲库。
+          </p>
+        </div>
+        <div>
+          <label htmlFor="setting-music-mode" className={labelClass}>
+            音乐来源
+          </label>
+          <select
+            id="setting-music-mode"
+            value={form.musicMode}
+            onChange={(event) =>
+              setForm({ ...form, musicMode: event.target.value === "meting" ? "meting" : "local" })
+            }
+            className={`mt-1.5 ${inputClass}`}
+          >
+            <option value="local">本地曲库</option>
+            <option value="meting">Meting 在线歌单</option>
+          </select>
+        </div>
+        {form.musicMode === "meting" ? (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="sm:col-span-3">
+              <label htmlFor="setting-music-meting-api" className={labelClass}>
+                Meting API 地址
+              </label>
+              <input
+                id="setting-music-meting-api"
+                value={form.musicMetingApi}
+                onChange={(event) => setForm({ ...form, musicMetingApi: event.target.value })}
+                placeholder="https://example.com/meting/api?server=:server&type=:type&id=:id&r=:r"
+                className={`mt-1.5 ${inputClass}`}
+              />
+              <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+                支持 :server、:type、:id、:r 占位符。
+              </p>
+            </div>
+            <div>
+              <label htmlFor="setting-music-meting-server" className={labelClass}>
+                平台
+              </label>
+              <input
+                id="setting-music-meting-server"
+                value={form.musicMetingServer}
+                onChange={(event) => setForm({ ...form, musicMetingServer: event.target.value })}
+                placeholder="netease"
+                className={`mt-1.5 ${inputClass}`}
+              />
+            </div>
+            <div>
+              <label htmlFor="setting-music-meting-type" className={labelClass}>
+                类型
+              </label>
+              <input
+                id="setting-music-meting-type"
+                value={form.musicMetingType}
+                onChange={(event) => setForm({ ...form, musicMetingType: event.target.value })}
+                placeholder="playlist"
+                className={`mt-1.5 ${inputClass}`}
+              />
+            </div>
+            <div>
+              <label htmlFor="setting-music-meting-id" className={labelClass}>
+                歌单 / 单曲 ID
+              </label>
+              <input
+                id="setting-music-meting-id"
+                value={form.musicMetingId}
+                onChange={(event) => setForm({ ...form, musicMetingId: event.target.value })}
+                className={`mt-1.5 ${inputClass}`}
+              />
+            </div>
+            <div className="sm:col-span-3">
+              <label htmlFor="setting-music-meting-fallback" className={labelClass}>
+                备用 API（每行一个，主 API 失败后按顺序尝试）
+              </label>
+              <textarea
+                id="setting-music-meting-fallback"
+                value={form.musicMetingFallbackApis.join("\n")}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    musicMetingFallbackApis: event.target.value
+                      .split(/\r?\n/)
+                      .map((item) => item.trim())
+                      .filter(Boolean),
+                  })
+                }
+                rows={3}
+                className={`mt-1.5 ${inputClass} font-mono`}
+              />
+            </div>
+            <div className="sm:col-span-3">
+              <label htmlFor="setting-music-meting-auth" className={labelClass}>
+                Meting 认证信息（可选，仅服务端使用）
+              </label>
+              <input
+                id="setting-music-meting-auth"
+                type="password"
+                autoComplete="off"
+                value={form.musicMetingAuth}
+                onChange={(event) => setForm({ ...form, musicMetingAuth: event.target.value })}
+                className={`mt-1.5 ${inputClass}`}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className={cardClass}>

@@ -111,6 +111,30 @@ export const settingSchema = z.object({
   cardOpacity: z.coerce.number().min(0, "透明度不能小于 0").max(1, "透明度不能大于 1").default(0.6),
   cardBorderEnabled: z.coerce.boolean().default(false),
   cardFollowThemeEnabled: z.coerce.boolean().default(false),
+  musicMode: z.enum(["local", "meting"]).default("local"),
+  musicMetingApi: z
+    .string()
+    .trim()
+    .max(1000, "Meting API 地址过长")
+    .default("https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&r=:r")
+    .refine((value) => /^https?:\/\//i.test(value), "Meting API 地址必须以 http:// 或 https:// 开头"),
+  musicMetingFallbackApis: z
+    .array(
+      z
+        .string()
+        .trim()
+        .max(1000, "备用 API 地址过长")
+        .refine((value) => /^https?:\/\//i.test(value), "备用 API 地址必须以 http:// 或 https:// 开头"),
+    )
+    .max(5, "备用 API 不能超过 5 个")
+    .default([
+      "https://api.injahow.cn/meting/?server=:server&type=:type&id=:id",
+      "https://api.moeyao.cn/meting/?server=:server&type=:type&id=:id",
+    ]),
+  musicMetingServer: z.string().trim().max(50, "音乐平台名称过长").default("netease"),
+  musicMetingType: z.string().trim().max(50, "Meting 类型过长").default("playlist"),
+  musicMetingId: z.string().trim().max(200, "歌单或单曲 ID 过长").default("10046455237"),
+  musicMetingAuth: z.string().trim().max(500, "Meting 认证信息过长").default(""),
   bannerTitle: z.string().trim().max(100, "横幅标题过长").default(""),
   bannerTitleVisible: z.coerce.boolean().default(true),
   bannerSubtitle: z.string().trim().max(200, "横幅副标题过长").default(""),

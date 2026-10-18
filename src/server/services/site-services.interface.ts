@@ -25,6 +25,7 @@ import type { AdminTagService } from "./admin-tag.service.interface";
 import type { MarkdownImportService } from "./markdown-import.service.interface";
 import type { MediaService } from "./media.service.interface";
 import type { MusicService } from "./music.service.interface";
+import type { MetingMusicService } from "./meting-music.service.interface";
 import type { BilibiliService } from "./bilibili.service.interface";
 import type { BangumiService } from "./bangumi.service.interface";
 import type { VndbService } from "./vndb.service.interface";
@@ -46,6 +47,7 @@ export interface SiteServices {
   projectService: ProjectService;
   galleryService: GalleryService;
   musicService: MusicService;
+  metingMusicService: MetingMusicService;
   bilibiliService: BilibiliService;
   bangumiService: BangumiService;
   vndbService: VndbService;

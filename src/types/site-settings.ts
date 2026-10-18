@@ -4,6 +4,7 @@ import type { ThemeMode } from "./theme-mode";
 import type { WallpaperMode } from "./wallpaper-mode";
 import type { FriendPageNote } from "./friend-page-note";
 import type { MediaNsfwMode } from "./media-nsfw-mode";
+import type { MusicSourceMode } from "./music-source-mode";
 
 // 站点设置（由 settings 表键值解析而来）
 export interface SiteSettings {
@@ -69,6 +70,13 @@ export interface SiteSettings {
   cardOpacity: number;
   cardBorderEnabled: boolean;
   cardFollowThemeEnabled: boolean;
+  musicMode: MusicSourceMode;
+  musicMetingApi: string;
+  musicMetingFallbackApis: string[];
+  musicMetingServer: string;
+  musicMetingType: string;
+  musicMetingId: string;
+  musicMetingAuth: string;
   bannerTitle: string;
   bannerTitleVisible: boolean;
   bannerSubtitle: string;

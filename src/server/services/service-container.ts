@@ -53,6 +53,7 @@ import { DefaultAdminGalleryService } from "./admin-gallery.service";
 import { DefaultMarkdownImportService } from "./markdown-import.service";
 import { DefaultMediaService } from "./media.service";
 import { DefaultMusicService } from "./music.service";
+import { DefaultMetingMusicService } from "./meting-music.service";
 import { DefaultPageService } from "./page.service";
 import { DefaultPostService } from "./post.service";
 import { DefaultSettingService } from "./setting.service";
@@ -116,6 +117,7 @@ export function createSiteServices(): SiteServices {
     projectService: new DefaultProjectService(projects),
     galleryService: new DefaultGalleryService(galleries),
     musicService: new DefaultMusicService(musicTracks),
+    metingMusicService: new DefaultMetingMusicService(),
     bilibiliService: new DefaultBilibiliService(),
     bangumiService: new DefaultBangumiService(),
     vndbService: new DefaultVndbService(),

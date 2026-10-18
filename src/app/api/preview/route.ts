@@ -3,6 +3,7 @@ import { errorResponse, okResponse } from "@/lib/api-response";
 import { renderMarkdown } from "@/lib/markdown";
 import { readJson } from "@/server/api/read-json";
 import { getAdminSession } from "@/server/auth/get-admin-session";
+import { createSiteServices } from "@/server/services/service-container";
 import { previewSchema } from "@/server/validators/preview.schema";
 
 // 编辑器预览接口：用与前台一致的渲染链返回 HTML 与目录
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!parsed.success) {
     return errorResponse("invalid_params", parsed.error.issues[0]?.message ?? "参数不合法", 400);
   }
-  const rendered = await renderMarkdown(parsed.data.content);
+  const { postService } = createSiteServices();
+  const wikiLinkTargets = await postService.listWikiLinkTargets();
+  const rendered = await renderMarkdown(parsed.data.content, { wikiLinkTargets });
   return okResponse(rendered);
 }

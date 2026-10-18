@@ -5,6 +5,7 @@ import type { PostSummary } from "@/types/post-summary";
 import type { SearchHit } from "@/types/search-hit";
 import type { SeriesSummary } from "@/types/series-summary";
 import type { SiteStats } from "@/types/site-stats";
+import type { WikiLinkTarget } from "@/types/wiki-link-target";
 
 // 文章仓储接口：仅负责数据存取，业务规则由 PostService 处理
 export interface PostRepository {
@@ -47,4 +48,6 @@ export interface PostRepository {
   listRecentPublished(limit: number): Promise<PostDetail[]>;
   // 侧栏统计：已发布文章数、分类数、标签数、总阅读量与最近更新时间
   findSiteStats(): Promise<SiteStats>;
+  // Wiki Link 用：全部已发布文章的轻量索引（标题、摘要、分类、标签与封面）
+  listPublishedWikiLinkTargets(): Promise<WikiLinkTarget[]>;
 }

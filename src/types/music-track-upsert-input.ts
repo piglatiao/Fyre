@@ -4,5 +4,6 @@ export interface MusicTrackUpsertInput {
   artist: string;
   audioUrl: string;
   coverUrl: string;
+  lyrics: string;
   sortOrder: number;
 }

@@ -1,5 +1,7 @@
 import { CircleAlert, Home } from "lucide-react";
 import Link from "next/link";
+import BannerPortal from "@/components/site/banner-portal";
+import PageBannerOverlay from "@/components/site/page-banner-overlay";
 
 // 前台 404：文章或页面不存在时展示（对齐官网 404 的卡片样式）
 export default function SiteNotFound() {
@@ -31,6 +33,9 @@ export default function SiteNotFound() {
           返回首页
         </Link>
       </div>
+      <BannerPortal>
+        <PageBannerOverlay title="404" />
+      </BannerPortal>
     </div>
   );
 }

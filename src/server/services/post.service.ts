@@ -11,6 +11,7 @@ import type { PostSummary } from "@/types/post-summary";
 import type { SearchHit } from "@/types/search-hit";
 import type { SeriesSummary } from "@/types/series-summary";
 import type { SiteStats } from "@/types/site-stats";
+import type { WikiLinkTarget } from "@/types/wiki-link-target";
 import type { PostService } from "./post.service.interface";
 
 // 站内搜索返回条数上限
@@ -41,11 +42,12 @@ export class DefaultPostService implements PostService {
     if (!detail) {
       return null;
     }
-    const [viewCount, neighbors, rendered] = await Promise.all([
+    const [viewCount, neighbors, wikiLinkTargets] = await Promise.all([
       this.posts.incrementViewCount(detail.id),
       this.posts.findNeighbors(detail.publishedAt),
-      renderMarkdown(detail.content),
+      this.posts.listPublishedWikiLinkTargets(),
     ]);
+    const rendered = await renderMarkdown(detail.content, { wikiLinkTargets });
     return {
       post: { ...detail, viewCount },
       html: rendered.html,
@@ -141,5 +143,10 @@ export class DefaultPostService implements PostService {
   async getSiteStats(): Promise<SiteStats> {
     await this.applyDuePosts();
     return this.posts.findSiteStats();
+  }
+
+  async listWikiLinkTargets(): Promise<WikiLinkTarget[]> {
+    await this.applyDuePosts();
+    return this.posts.listPublishedWikiLinkTargets();
   }
 }

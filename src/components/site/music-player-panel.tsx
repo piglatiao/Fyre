@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Captions,
+  CaptionsOff,
   ListMusic,
   Loader2,
   Music,
@@ -15,6 +17,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useId, useRef } from "react";
 import { formatDuration } from "@/lib/format-duration";
 import { useMusicPlayerContext } from "./music-player-provider";
 
@@ -31,8 +34,68 @@ function ratioFromPointer(event: ReactPointerEvent<HTMLDivElement>): number {
 // 导航栏浮动面板与左侧栏「音乐」卡片共用本组件，播放状态来自 MusicPlayerProvider
 export default function MusicPlayerPanel() {
   const player = useMusicPlayerContext();
-  const { tracks, current, currentIndex, playing, loading, progress, duration, volume, muted, mode, playlistOpen } =
-    player;
+  const {
+    tracks,
+    current,
+    currentIndex,
+    playing,
+    loading,
+    progress,
+    duration,
+    lyrics,
+    activeLyricIndex,
+    volume,
+    muted,
+    mode,
+    playlistOpen,
+    lyricsOpen,
+  } = player;
+  const lyricsDrawerId = useId();
+  const lyricContainerRef = useRef<HTMLDivElement>(null);
+  const lyricLineRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const userScrollUntilRef = useRef(0);
+  const resumeTimerRef = useRef(0);
+
+  // 当前歌词行变化时自动居中；用户手动滚动后的三秒内暂停自动滚动
+  useEffect(() => {
+    if (!lyricsOpen || activeLyricIndex < 0 || Date.now() < userScrollUntilRef.current) {
+      return;
+    }
+    const container = lyricContainerRef.current;
+    const line = lyricLineRefs.current[activeLyricIndex];
+    if (!container || !line) {
+      return;
+    }
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    container.scrollTo({
+      top: line.offsetTop - container.clientHeight / 2 + line.offsetHeight / 2,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, [activeLyricIndex, lyricsOpen]);
+
+  // 清理歌词滚动恢复计时器
+  useEffect(() => {
+    return () => window.clearTimeout(resumeTimerRef.current);
+  }, []);
+
+  // 用户主动滚动后暂时停止自动居中，三秒后恢复跟随当前歌词
+  function pauseLyricsAutoScroll(): void {
+    userScrollUntilRef.current = Date.now() + 3000;
+    window.clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = window.setTimeout(() => {
+      userScrollUntilRef.current = 0;
+      const container = lyricContainerRef.current;
+      const line = lyricLineRefs.current[activeLyricIndex];
+      if (!container || !line) {
+        return;
+      }
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      container.scrollTo({
+        top: line.offsetTop - container.clientHeight / 2 + line.offsetHeight / 2,
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    }, 3000);
+  }
 
   // 未配置曲目时整块不渲染（导航按钮同样隐藏）
   if (tracks.length === 0) {
@@ -64,9 +127,33 @@ export default function MusicPlayerPanel() {
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <h3 className="truncate text-base leading-tight font-bold text-neutral-800 dark:text-neutral-100">
-            {current?.title ?? "音乐"}
-          </h3>
+          <div className="flex items-center gap-1">
+            <h3 className="min-w-0 flex-1 truncate text-base leading-tight font-bold text-neutral-800 dark:text-neutral-100">
+              {current?.title ?? "音乐"}
+            </h3>
+            {lyrics.length > 0 ? (
+              <button
+                type="button"
+                onClick={player.toggleLyrics}
+                title={lyricsOpen ? "关闭歌词" : "显示歌词"}
+                aria-label={lyricsOpen ? "关闭歌词" : "显示歌词"}
+                aria-expanded={lyricsOpen}
+                aria-controls={lyricsDrawerId}
+                className={
+                  "flex size-11 shrink-0 items-center justify-center rounded-lg transition-colors " +
+                  (lyricsOpen
+                    ? "text-(--primary)"
+                    : "text-neutral-400 hover:text-(--primary) dark:text-neutral-500")
+                }
+              >
+                {lyricsOpen ? (
+                  <Captions aria-hidden className="size-5" />
+                ) : (
+                  <CaptionsOff aria-hidden className="size-5" />
+                )}
+              </button>
+            ) : null}
+          </div>
           <p className="truncate text-xs font-medium text-neutral-500 dark:text-neutral-400">
             {current ? current.artist || "未知歌手" : "暂未播放"}
           </p>
@@ -199,12 +286,65 @@ export default function MusicPlayerPanel() {
       </div>
 
       <div
+        id={lyricsDrawerId}
         className={
-          "grid transition-all duration-300 " +
+          "grid transition-all duration-300 ease-out motion-reduce:transition-none " +
+          (lyricsOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")
+        }
+      >
+        <div className="min-h-0 overflow-hidden" inert={!lyricsOpen}>
+          <div className="mx-1 mt-2 border-t border-neutral-100 pt-2 dark:border-white/5">
+            <div
+              ref={lyricContainerRef}
+              className="custom-scrollbar relative flex h-48 flex-col gap-1 overflow-y-auto px-2 py-20 text-center"
+              role="listbox"
+              aria-label="歌词"
+              onWheel={pauseLyricsAutoScroll}
+              onTouchStart={pauseLyricsAutoScroll}
+            >
+              {lyrics.length > 0 ? (
+                lyrics.map((line, index) => (
+                  <button
+                    key={`${line.time}-${index}`}
+                    ref={(node) => {
+                      lyricLineRefs.current[index] = node;
+                    }}
+                    type="button"
+                    role="option"
+                    aria-selected={index === activeLyricIndex}
+                    aria-label={`跳转到 ${formatDuration(line.time)}：${line.text}`}
+                    onClick={() => player.seekTo(line.time)}
+                    className={
+                      "flex min-h-11 shrink-0 items-center justify-center rounded-lg px-2 py-1 text-sm leading-relaxed transition-colors " +
+                      (index === activeLyricIndex
+                        ? "bg-(--btn-regular-bg) font-bold text-(--primary)"
+                        : "text-neutral-500 hover:bg-(--btn-plain-bg-hover) hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100")
+                    }
+                  >
+                    <span className="text-balance">{line.text}</span>
+                  </button>
+                ))
+              ) : (
+                <div
+                  className="flex h-full items-center justify-center text-sm text-neutral-400"
+                  role="option"
+                  aria-selected={false}
+                >
+                  暂无歌词
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={
+          "grid transition-all duration-300 motion-reduce:transition-none " +
           (playlistOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")
         }
       >
-        <div className="min-h-0 overflow-hidden">
+        <div className="min-h-0 overflow-hidden" inert={!playlistOpen}>
           <div className="mx-1 mt-2 border-t border-neutral-100 pt-2 dark:border-white/5">
             <div className="custom-scrollbar relative max-h-48 overflow-y-auto pr-1 pb-1" role="listbox" aria-label="列表">
               {tracks.map((track, index) => (

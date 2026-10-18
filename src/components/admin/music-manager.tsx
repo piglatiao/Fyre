@@ -12,11 +12,19 @@ interface MusicFormDraft {
   artist: string;
   audioUrl: string;
   coverUrl: string;
+  lyrics: string;
   sortOrder: string;
 }
 
 // 表单初始值：默认排在末尾，便于新增曲目直接追加
-const emptyForm: MusicFormDraft = { title: "", artist: "", audioUrl: "", coverUrl: "", sortOrder: "9999" };
+const emptyForm: MusicFormDraft = {
+  title: "",
+  artist: "",
+  audioUrl: "",
+  coverUrl: "",
+  lyrics: "",
+  sortOrder: "9999",
+};
 
 // 音乐管理：曲目列表 + 新增/编辑表单 + 删除确认
 // 音频与封面复用媒体库：可在字段内直接上传、从媒体库选择或填写外链
@@ -41,6 +49,7 @@ export default function MusicManager({ items }: { items: AdminMusicTrackItem[] }
       artist: form.artist,
       audioUrl: form.audioUrl,
       coverUrl: form.coverUrl,
+      lyrics: form.lyrics,
       sortOrder: Number.parseInt(form.sortOrder, 10) || 0,
     };
     const result = editingId
@@ -77,6 +86,7 @@ export default function MusicManager({ items }: { items: AdminMusicTrackItem[] }
       artist: track.artist,
       audioUrl: track.audioUrl,
       coverUrl: track.coverUrl,
+      lyrics: track.lyrics,
       sortOrder: String(track.sortOrder),
     });
   }
@@ -160,6 +170,22 @@ export default function MusicManager({ items }: { items: AdminMusicTrackItem[] }
               accept="image/*"
               placeholder="/uploads/2026/10/xxx.webp"
             />
+          </div>
+          <div className="sm:col-span-3">
+            <label htmlFor="music-lyrics" className={labelClass}>
+              歌词（LRC 文本）
+            </label>
+            <textarea
+              id="music-lyrics"
+              value={form.lyrics}
+              onChange={(event) => setForm({ ...form, lyrics: event.target.value })}
+              rows={7}
+              placeholder={"[00:00.00]第一句歌词\n[00:12.50]第二句歌词"}
+              className={`mt-1.5 ${inputClass} font-mono`}
+            />
+            <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+              支持一行多个时间戳与 [mm:ss.xx] / [mm:ss.xxx] 格式；留空则不显示歌词入口。
+            </p>
           </div>
         </div>
         <div className="mt-4 flex items-center gap-2">

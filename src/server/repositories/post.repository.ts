@@ -1,6 +1,7 @@
 import { PostStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { toPlainText } from "@/lib/plain-text";
+import { formatDateKey } from "@/lib/format-date";
 import type { AdjacentPosts } from "@/types/adjacent-posts";
 import type { ArchiveEntry } from "@/types/archive-entry";
 import type { PostDetail } from "@/types/post-detail";
@@ -8,6 +9,7 @@ import type { PostSummary } from "@/types/post-summary";
 import type { SearchHit } from "@/types/search-hit";
 import type { SeriesSummary } from "@/types/series-summary";
 import type { SiteStats } from "@/types/site-stats";
+import type { WikiLinkTarget } from "@/types/wiki-link-target";
 import type { PostRepository } from "./post.repository.interface";
 
 type PostRowWithRelations = {
@@ -365,5 +367,33 @@ export class PrismaPostRepository implements PostRepository {
       include: relations,
     });
     return rows.map(toDetail);
+  }
+
+  async listPublishedWikiLinkTargets(): Promise<WikiLinkTarget[]> {
+    const rows = await prisma.post.findMany({
+      where: { status: PostStatus.PUBLISHED },
+      orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        coverUrl: true,
+        encrypted: true,
+        publishedAt: true,
+        createdAt: true,
+        category: { select: { name: true, slug: true } },
+        tags: { select: { tag: { select: { name: true, slug: true } } } },
+      },
+    });
+    return rows.map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      excerpt: row.encrypted ? "该文章已加密，访问后输入密码查看。" : (row.excerpt ?? ""),
+      coverUrl: row.coverUrl,
+      publishedAt: formatDateKey(row.publishedAt ?? row.createdAt),
+      category: row.category,
+      tags: row.tags.map((item) => item.tag),
+      encrypted: row.encrypted,
+    }));
   }
 }

@@ -49,21 +49,23 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
     musicService.listPublic(),
   ]);
   const navLinks = resolveSiteNavLinks(settings.navLinks);
+  // 音乐认证信息只供服务端拉取在线歌单，不进入前台客户端设置载荷
+  const clientSettings = { ...settings, musicMetingAuth: "" };
   // 横幅封面预加载：让封面尽量跟上首次绘制（宿主把页面判为 hidden 时不会再有后续重绘）
   if (settings.bannerVideoPoster) {
     preload(settings.bannerVideoPoster, { as: "image", fetchPriority: "high" });
   }
 
   return (
-    <MusicPlayerProvider tracks={tracks}>
+    <MusicPlayerProvider tracks={tracks} musicMode={settings.musicMode}>
       <SiteShell
-        settings={settings}
+        settings={clientSettings}
         effects={settings.sakuraEnabled ? <SakuraEffect /> : null}
-        header={<SiteHeader settings={settings} navLinks={navLinks} />}
-        footer={<SiteFooter settings={settings} />}
+        header={<SiteHeader settings={clientSettings} navLinks={navLinks} />}
+        footer={<SiteFooter settings={clientSettings} />}
         sidebar={
           <>
-            <ProfileCard settings={settings} />
+            <ProfileCard settings={clientSettings} />
             <AnnouncementCard text={settings.announcementText} />
             {/* 音乐卡：无曲目时不渲染（与官网一致） */}
             {tracks.length > 0 ? <MusicPlayerCard /> : null}

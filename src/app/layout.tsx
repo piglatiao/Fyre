@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 import Providers from "./providers";
 import { getSiteUrl } from "@/lib/site-url";

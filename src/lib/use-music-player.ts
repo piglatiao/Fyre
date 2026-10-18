@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { parseLrc } from "@/lib/parse-lrc";
 import type { MusicPlayMode } from "@/types/music-play-mode";
 import type { MusicPlayerState } from "@/types/music-player-state";
 import type { MusicTrack } from "@/types/music-track";
@@ -50,8 +51,28 @@ export function useMusicPlayer(tracks: MusicTrack[]): MusicPlayerState {
   const [muted, setMuted] = useState(false);
   const [mode, setMode] = useState<MusicPlayMode>("list");
   const [playlistOpen, setPlaylistOpen] = useState(false);
+  const [lyricsOpen, setLyricsOpen] = useState(false);
+  // 在线歌词按曲目缓存：只接受与当前曲目 id 匹配的异步结果，避免切歌串词
+  const [remoteLyrics, setRemoteLyrics] = useState<{ trackId: string; text: string } | null>(null);
 
   const current = tracks[currentIndex] ?? null;
+  const lyricsText = current?.lyrics?.trim()
+    ? current.lyrics
+    : remoteLyrics?.trackId === current?.id
+      ? remoteLyrics.text
+      : "";
+  const lyrics = useMemo(() => parseLrc(lyricsText), [lyricsText]);
+  const activeLyricIndex = useMemo(() => {
+    let index = -1;
+    for (const [position, line] of lyrics.entries()) {
+      if (progress + 0.12 >= line.time) {
+        index = position;
+      } else {
+        break;
+      }
+    }
+    return index;
+  }, [lyrics, progress]);
 
   // 记录事件回调需要的最新播放模式、列表长度与下标
   useEffect(() => {
@@ -133,6 +154,17 @@ export function useMusicPlayer(tracks: MusicTrack[]): MusicPlayerState {
     setProgress(audio.currentTime);
   }, []);
 
+  // 按秒跳转：歌词行点击使用，仍以 audio.duration 为边界
+  const seekTo = useCallback((seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0 || !Number.isFinite(seconds)) {
+      return;
+    }
+    const clamped = Math.min(Math.max(seconds, 0), audio.duration);
+    audio.currentTime = clamped;
+    setProgress(clamped);
+  }, []);
+
   // 设置音量并写入本地存储；调到 0 时自动静音（界面数值由 volumechange 事件回填）
   const setVolume = useCallback((value: number) => {
     const audio = audioRef.current;
@@ -162,7 +194,36 @@ export function useMusicPlayer(tracks: MusicTrack[]): MusicPlayerState {
 
   const togglePlaylist = useCallback(() => {
     setPlaylistOpen((value) => !value);
+    setLyricsOpen(false);
   }, []);
+
+  const toggleLyrics = useCallback(() => {
+    if (lyrics.length === 0) {
+      return;
+    }
+    setLyricsOpen((value) => !value);
+    setPlaylistOpen(false);
+  }, [lyrics.length]);
+
+  // 在线歌词地址由服务端换取同源代理，客户端只请求本站地址，避免 CORS 失败影响播放
+  useEffect(() => {
+    const lyricsUrl = current?.lyricsUrl;
+    if (!lyricsUrl) {
+      return;
+    }
+    const controller = new AbortController();
+    void fetch(lyricsUrl, { signal: controller.signal, headers: { accept: "text/plain" } })
+      .then((response) => (response.ok ? response.text() : ""))
+      .then((text) => {
+        if (text.trim()) {
+          setRemoteLyrics({ trackId: current.id, text });
+        }
+      })
+      .catch(() => {
+        // 歌词请求失败时保留无歌词状态，不干扰音频播放
+      });
+    return () => controller.abort();
+  }, [current?.id, current?.lyricsUrl]);
 
   // 创建音频元素并订阅音频事件：进度、时长、缓冲、音量、播放结束与加载失败
   useEffect(() => {
@@ -264,18 +325,23 @@ export function useMusicPlayer(tracks: MusicTrack[]): MusicPlayerState {
     loading,
     progress,
     duration,
+    lyrics,
+    activeLyricIndex,
     volume,
     muted,
     mode,
     playlistOpen,
+    lyricsOpen: lyricsOpen && lyrics.length > 0,
     playTrack,
     toggle,
     previous,
     next,
     seekRatio,
+    seekTo,
     setVolume,
     toggleMute,
     cycleMode,
     togglePlaylist,
+    toggleLyrics,
   };
 }

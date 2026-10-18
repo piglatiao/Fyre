@@ -10,14 +10,14 @@
 | 样式 | Tailwind CSS 4 + next-themes（明暗主题） |
 | 数据库 | MySQL 8 + Prisma 7（驱动适配器 `@prisma/adapter-mariadb`） |
 | 鉴权 | Auth.js v5（Credentials + JWT + HttpOnly Cookie）+ bcryptjs |
-| 内容渲染 | unified + remark-gfm + rehype-sanitize + rehype-pretty-code（Shiki）+ rehype-slug |
+| 内容渲染 | unified + remark-gfm + remark-math + rehype-sanitize + rehype-katex + rehype-pretty-code（Shiki）+ rehype-slug；Mermaid / PlantUML / Wiki Link |
 | 媒体处理 | sharp（非 GIF 图片自动转 WebP） |
 | 校验 | zod 4 |
 | 订阅 | feed（RSS 2.0 / Atom） |
 
 ## 功能一览
 
-**访客端**：首页卡片流（置顶优先 + 分页）、文章详情（目录、代码高亮、上下篇、阅读数自增、站内评论）、分类页、标签页与标签云、归档页、搜索页与导航栏即时搜索、动态、项目、相册、友链、留言、书签导航、打赏、音乐与自定义页面；哔哩哔哩、Bangumi、VNDB、MyAnimeList 收藏页均支持统计、搜索、筛选、排序、分页与 NSFW 策略。全站提供分类胶囊栏、响应式布局、逐页 SEO metadata、`sitemap.xml`、`robots.txt`、RSS / Atom 与文章 JSON-LD。
+**访客端**：首页卡片流（置顶优先 + 分页）、文章详情（目录、代码高亮、KaTeX 公式、Mermaid / PlantUML 图表、Wiki Link、图片灯箱、上下篇、阅读数自增、站内评论）、分类页、标签页与标签云、归档页、搜索页与导航栏即时搜索、动态、项目、相册、友链、留言、书签导航、打赏、音乐（LRC 歌词、Meting 在线歌单）与自定义页面；哔哩哔哩、Bangumi、VNDB、MyAnimeList 收藏页均支持统计、搜索、筛选、排序、分页与 NSFW 策略。全站提供分类胶囊栏、响应式布局、逐页 SEO metadata、404 页面、`sitemap.xml`、`robots.txt`、RSS / Atom 与文章 JSON-LD。
 
 **管理后台**：登录（5 次失败锁定 10 分钟）、仪表盘（内容模块与评论统计）、文章管理（筛选、批量删除、置顶、定时/草稿/私密）、分栏 Markdown 编辑器（实时服务端预览 + 图片上传插入）、分类管理（非空删除需先迁移文章）、标签管理（含合并）、页面、媒体、动态、项目、相册、友链、留言、评论管理（审核与状态筛选）、书签、打赏、音乐、媒体源配置、站点设置（站点信息、导航、社交、备案、SEO、评论）与账号密码维护；移动端提供抽屉式导航。
 
@@ -37,6 +37,17 @@
 - 壁纸轮播支持桌面端与移动端分别配置，每端最多 10 张图片/GIF；移动端留空时复用桌面图片。切换间隔为 3-60 秒，默认 5 秒，渐变过渡默认开启。
 - 轮播关闭、只配置一张图片或列表中没有图片时，继续使用原有单张横幅；视频横幅、封面与播放策略不变。页面隐藏时暂停轮播，访客系统开启「减少动态效果」时停止自动轮播与渐变。
 - 樱花特效默认关闭；关闭时服务端不渲染组件，也不下发对应客户端脚本。开启后使用不拦截交互的固定 Canvas，页面隐藏时暂停，减少动态效果时不创建动画，沉浸式阅读时自动隐藏。
+
+## 高级 Markdown 与音乐
+
+- 文章 Markdown 支持 `$行内公式$` 与 `$$块级公式$$`（KaTeX，关闭信任命令），`mermaid` / `plantuml` 围栏图表以及 `[[文章]]`、`[[文章#标题|别名]]` Wiki Link。图表支持缩放、复位、全屏、键盘聚焦滚动与失败源码展开；Wiki Link 命中文章后显示文章卡片。
+- 正文代码块提供复制按钮，非链接、非图表图片可打开灯箱；灯箱支持前后切换、方向键、Esc、遮罩关闭、焦点恢复与滚动锁定。所有 Markdown HTML 仍先经 `rehype-sanitize` 白名单过滤。
+- 本地曲目支持 LRC 歌词（`lyrics` 字段，LRC 文本存在 `music_tracks.lyrics`），解析多时间戳与百分之一/千分之一秒；播放器提供歌词抽屉、当前行高亮、点击跳转、用户滚动后暂停自动跟随三秒，歌词与播放列表互斥。
+- 后台「站点设置」可将音乐来源切换为 Meting 在线歌单，并配置主 API、备用 API、平台、类型、歌单/单曲 ID 与认证信息；主 API 超时或失败时按顺序回退，成功结果缓存五分钟。
+- 在线歌词由服务端签发 HMAC 令牌后经同源 `/api/music/lyrics` 代理，限制 HTTP(S)、常见本机/私网地址、超时与文件大小；`musicMetingAuth` 不会下发到前台客户端。在线歌单不可用时自动回退本地曲库。
+- 访问未匹配的站内地址时，使用前台布局、404 卡片与横幅标题；移动端不显示横幅标题，与原站行为一致。`not-found` 由 `(site)/[...notFound]` 兜底路由触发，文章或页面不存在时同样复用该页面。
+
+> 升级说明：本地歌词需要执行 `pnpm db:deploy`（生产）或 `pnpm db:migrate`（开发）应用 `20261017190000_add_music_track_lyrics` 迁移；未执行迁移前，查询会因 `music_tracks.lyrics` 缺失而失败。
 
 ## 媒体收藏与评论
 

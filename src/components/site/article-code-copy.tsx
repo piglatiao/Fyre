@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { RefObject } from "react";
 
 // 复制按钮图标：复制与成功打勾，样式由 globals.css 的 .code-copy-btn 控制
 const ICON_COPY =
@@ -9,10 +10,17 @@ const ICON_CHECK =
   '<svg class="icon-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
 // 代码块复制按钮：服务端渲染的 HTML 不可交互，挂载后给每个代码块挂一个官方同款右上角图标按钮
-export default function ArticleCodeCopy() {
+export default function ArticleCodeCopy({
+  rootRef,
+  contentKey,
+}: {
+  rootRef?: RefObject<HTMLElement | null>;
+  contentKey: string;
+}) {
   useEffect(() => {
     const cleanups: (() => void)[] = [];
-    const figures = document.querySelectorAll<HTMLElement>("figure[data-rehype-pretty-code-figure]");
+    const root = rootRef?.current ?? document;
+    const figures = root.querySelectorAll<HTMLElement>("figure[data-rehype-pretty-code-figure]");
     for (const figure of figures) {
       const code = figure.querySelector("pre code");
       if (!code || figure.querySelector("[data-code-copy]")) {
@@ -62,7 +70,7 @@ export default function ArticleCodeCopy() {
         cleanup();
       }
     };
-  }, []);
+  }, [rootRef, contentKey]);
 
   return null;
 }

@@ -10,6 +10,7 @@ const trackSelect = {
   artist: true,
   audioUrl: true,
   coverUrl: true,
+  lyrics: true,
   sortOrder: true,
   createdAt: true,
 } as const;
@@ -17,14 +18,16 @@ const trackSelect = {
 // 基于 Prisma 的音乐曲目仓储实现
 export class PrismaMusicTrackRepository implements MusicTrackRepository {
   async listAll(): Promise<AdminMusicTrackItem[]> {
-    return prisma.musicTrack.findMany({
+    const rows = await prisma.musicTrack.findMany({
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       select: trackSelect,
     });
+    return rows.map((row) => ({ ...row, lyrics: row.lyrics ?? "" }));
   }
 
   async findById(id: number): Promise<AdminMusicTrackItem | null> {
-    return prisma.musicTrack.findUnique({ where: { id }, select: trackSelect });
+    const row = await prisma.musicTrack.findUnique({ where: { id }, select: trackSelect });
+    return row ? { ...row, lyrics: row.lyrics ?? "" } : null;
   }
 
   async create(input: MusicTrackUpsertInput): Promise<{ id: number }> {

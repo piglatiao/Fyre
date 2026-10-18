@@ -1334,6 +1334,424 @@ body {
   border-radius: 1rem;
 }
 
+/* 正文图片可点击放大；Wiki 卡片封面与图表图片不进入灯箱 */
+.article-body img[data-article-lightbox-image="true"] {
+  cursor: zoom-in;
+}
+
+.article-body img[data-article-lightbox-image="true"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+
+/* ===== Mermaid / PlantUML 图表容器 ===== */
+.article-body .diagram-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 1.4em 0;
+  overflow: hidden;
+  border: 1px solid var(--line-divider);
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--card-bg) 76%, transparent);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.article-body .diagram-container:hover {
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+}
+
+.dark .article-body .diagram-container:hover {
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+}
+
+.article-body .diagram-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.95rem;
+  border-bottom: 1px solid var(--line-divider);
+  background: color-mix(in oklab, var(--card-bg) 82%, transparent);
+}
+
+.article-body .diagram-label {
+  color: var(--content-meta);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.article-body .diagram-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.article-body .diagram-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.65rem;
+  border-radius: 0.55rem;
+  background: var(--btn-regular-bg);
+  color: var(--btn-content);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.article-body .diagram-action:hover {
+  background: var(--btn-regular-bg-hover);
+}
+
+.article-body .diagram-action:active {
+  background: var(--btn-regular-bg-active);
+}
+
+.article-body .diagram-action:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.article-body .diagram-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.article-body .diagram-viewport {
+  min-height: 8rem;
+  max-height: min(70vh, 38rem);
+  overflow: auto;
+  padding: 1.25rem;
+  overscroll-behavior: contain;
+}
+
+.article-body .diagram-viewport:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.article-body .diagram-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100%;
+  transform-origin: top left;
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.article-body .diagram-output {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.article-body .diagram-output > svg {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  margin-inline: auto;
+  user-select: none;
+}
+
+.article-body .plantuml-image {
+  display: none;
+  width: auto;
+  max-width: 100%;
+  max-height: min(62vh, 34rem);
+  height: auto;
+  margin: 0 auto;
+  border-radius: 0.5rem;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.article-body .plantuml-image-light {
+  display: block;
+}
+
+.dark .article-body .plantuml-image-light {
+  display: none;
+}
+
+.dark .article-body .plantuml-image-dark {
+  display: block;
+}
+
+.article-body .diagram-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  color: var(--content-meta);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.article-body .diagram-status[hidden] {
+  display: none;
+}
+
+.article-body .diagram-status[data-state="error"] {
+  margin: 0.75rem 1rem;
+  border: 1px solid rgb(185 28 28 / 0.35);
+  border-radius: 0.5rem;
+  background: rgb(254 242 242 / 0.9);
+  color: #991b1b;
+}
+
+.dark .article-body .diagram-status[data-state="error"] {
+  border-color: rgb(252 165 165 / 0.45);
+  background: rgb(127 29 29 / 0.24);
+  color: #fecaca;
+}
+
+.article-body .diagram-source {
+  border-top: 1px solid var(--line-divider);
+  background: color-mix(in oklab, var(--card-bg) 88%, transparent);
+}
+
+.article-body .diagram-source summary {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.4rem 1rem;
+  color: var(--content-meta);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.article-body .diagram-source summary:hover {
+  color: var(--primary);
+}
+
+.article-body .diagram-source summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.article-body .diagram-source pre {
+  max-height: 20rem;
+  margin: 0;
+  overflow: auto;
+  border-radius: 0;
+  background: var(--codeblock-bg);
+  color: var(--codeblock-fg);
+}
+
+.article-body .diagram-source-code {
+  white-space: pre;
+}
+
+.article-body .diagram-container:fullscreen,
+.article-body .diagram-container.is-expanded {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--card-bg);
+}
+
+.article-body .diagram-container.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.article-body .diagram-container:fullscreen .diagram-viewport,
+.article-body .diagram-container.is-expanded .diagram-viewport {
+  flex: 1;
+  max-height: none;
+}
+
+.article-body .diagram-container:fullscreen .diagram-source,
+.article-body .diagram-container.is-expanded .diagram-source {
+  max-height: 35vh;
+  overflow: auto;
+}
+
+/* ===== Wiki Link 行内链接与文章卡片 ===== */
+.article-body a.wiki-link {
+  text-decoration-style: dotted;
+}
+
+.article-body a.card-wiki-link {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  margin: 0.9em 0;
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--line-divider);
+  border-radius: var(--radius-large);
+  background: var(--license-block-bg);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.article-body a.card-wiki-link:hover {
+  border-color: color-mix(in oklab, var(--primary) 28%, var(--line-divider));
+  background: var(--btn-regular-bg-hover);
+  color: inherit;
+}
+
+.article-body a.card-wiki-link:active {
+  background: var(--btn-regular-bg-active);
+  transform: scale(0.985);
+}
+
+.article-body a.card-wiki-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.article-body .wlc-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.article-body .wlc-title {
+  color: color-mix(in oklab, var(--deep-text) 92%, transparent);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  transition: color 0.15s ease;
+}
+
+.dark .article-body .wlc-title {
+  color: rgb(255 255 255 / 0.92);
+}
+
+.article-body a.card-wiki-link:hover .wlc-title {
+  color: var(--primary);
+}
+
+.article-body .wlc-description {
+  color: color-mix(in oklab, currentColor 78%, transparent);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.article-body .wlc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin-top: auto;
+  color: var(--content-meta);
+  font-size: 0.75rem;
+}
+
+.article-body .wlc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+}
+
+.article-body .wlc-tag {
+  opacity: 0.9;
+}
+
+.article-body .wlc-encrypted {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--btn-regular-bg);
+  color: var(--btn-content);
+  font-weight: 600;
+}
+
+.article-body .wlc-cover {
+  flex: 0 0 30%;
+  order: -1;
+  min-width: 7rem;
+  max-width: 13rem;
+  align-self: stretch;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: var(--btn-regular-bg);
+}
+
+.article-body a.card-wiki-link .wlc-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  object-fit: cover;
+  transition: transform 0.3s ease, filter 0.15s ease;
+}
+
+.article-body a.card-wiki-link:hover .wlc-cover img {
+  filter: brightness(0.82);
+  transform: scale(1.06);
+}
+
+@media (max-width: 640px) {
+  .article-body .diagram-toolbar {
+    align-items: flex-start;
+    padding: 0.4rem 0.5rem 0.4rem 0.75rem;
+  }
+
+  .article-body .diagram-viewport {
+    min-height: 7rem;
+    max-height: 60vh;
+    padding: 0.75rem;
+  }
+
+  .article-body .plantuml-image {
+    max-height: 55vh;
+  }
+
+  .article-body a.card-wiki-link {
+    flex-direction: column;
+    padding: 0.875rem;
+  }
+
+  .article-body .wlc-cover {
+    order: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    aspect-ratio: 2 / 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-body .diagram-stage,
+  .article-body .diagram-container,
+  .article-body .diagram-action,
+  .article-body a.card-wiki-link,
+  .article-body .wlc-title,
+  .article-body a.card-wiki-link .wlc-cover img {
+    transition: none;
+  }
+}
+
 .article-body hr {
   margin: 2.2em 0;
   border: none;

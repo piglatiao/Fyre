@@ -7,6 +7,7 @@ import type { SocialLink } from "@/types/social-link";
 import type { ThemeMode } from "@/types/theme-mode";
 import type { WallpaperMode } from "@/types/wallpaper-mode";
 import type { MediaNsfwMode } from "@/types/media-nsfw-mode";
+import type { MusicSourceMode } from "@/types/music-source-mode";
 import {
   DEFAULT_BANNER_HEIGHT_HOME,
   DEFAULT_BANNER_HEIGHT_NON_HOME,
@@ -93,6 +94,16 @@ const fallbackSettings: SiteSettings = {
   cardOpacity: 0.6,
   cardBorderEnabled: false,
   cardFollowThemeEnabled: false,
+  musicMode: "local",
+  musicMetingApi: "https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&r=:r",
+  musicMetingFallbackApis: [
+    "https://api.injahow.cn/meting/?server=:server&type=:type&id=:id",
+    "https://api.moeyao.cn/meting/?server=:server&type=:type&id=:id",
+  ],
+  musicMetingServer: "netease",
+  musicMetingType: "playlist",
+  musicMetingId: "10046455237",
+  musicMetingAuth: "",
   bannerTitle: "",
   bannerTitleVisible: true,
   bannerSubtitle: "",
@@ -152,6 +163,17 @@ function readStringArray(raw: string | undefined): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+// 读取 HTTP(S) 地址数组：字段缺失或损坏时使用默认值，显式保存的空数组仍然生效
+function readHttpUrlList(raw: string | undefined, fallback: string[]): string[] {
+  const value = parseJson(raw);
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+  return value
+    .filter((item): item is string => typeof item === "string" && /^https?:\/\//i.test(item))
+    .slice(0, 5);
+}
+
 // 读取社交链接配置：仅保留同时含 label 与 url 的条目
 function readSocialLinks(raw: string | undefined): SocialLink[] {
   const value = parseJson(raw);
@@ -198,6 +220,12 @@ function readNumber(raw: string | undefined, fallback: number): number {
 function readBoolean(raw: string | undefined, fallback: boolean): boolean {
   const value = parseJson(raw);
   return typeof value === "boolean" ? value : fallback;
+}
+
+// 读取音乐来源：仅接受本地曲库与 Meting 在线歌单
+function readMusicSourceMode(raw: string | undefined, fallback: MusicSourceMode): MusicSourceMode {
+  const value = parseJson(raw);
+  return value === "local" || value === "meting" ? value : fallback;
 }
 
 // 读取壁纸模式：仅接受四种合法取值
@@ -369,6 +397,16 @@ export class DefaultSettingService implements SettingService {
         raw.cardFollowThemeEnabled,
         fallbackSettings.cardFollowThemeEnabled,
       ),
+      musicMode: readMusicSourceMode(raw.musicMode, fallbackSettings.musicMode),
+      musicMetingApi: readString(raw.musicMetingApi, fallbackSettings.musicMetingApi),
+      musicMetingFallbackApis: readHttpUrlList(
+        raw.musicMetingFallbackApis,
+        fallbackSettings.musicMetingFallbackApis,
+      ),
+      musicMetingServer: readString(raw.musicMetingServer, fallbackSettings.musicMetingServer),
+      musicMetingType: readString(raw.musicMetingType, fallbackSettings.musicMetingType),
+      musicMetingId: readString(raw.musicMetingId, fallbackSettings.musicMetingId),
+      musicMetingAuth: readOptionalString(raw.musicMetingAuth, fallbackSettings.musicMetingAuth),
       bannerTitle: readString(raw.bannerTitle, fallbackSettings.bannerTitle),
       bannerTitleVisible: readBoolean(raw.bannerTitleVisible, fallbackSettings.bannerTitleVisible),
       bannerSubtitle: readString(raw.bannerSubtitle, fallbackSettings.bannerSubtitle),
