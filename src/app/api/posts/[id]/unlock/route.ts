@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { errorResponse, okResponse } from "@/lib/api-response";
+import { isSecureRequest } from "@/server/api/is-secure-request";
 import { readJson } from "@/server/api/read-json";
 import { createUnlockToken, unlockCookieName } from "@/server/auth/post-unlock";
 import { checkUnlockLock, clearUnlockFailures, recordUnlockFailure } from "@/server/auth/post-unlock-rate-limit";
@@ -43,7 +44,7 @@ export async function POST(
     sameSite: "lax",
     path: "/",
     maxAge: UNLOCK_MAX_AGE_SECONDS,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecureRequest(request),
   });
   return response;
 }
