@@ -57,3 +57,11 @@ next-env.d.ts
 # 运维产物：备份文件与 PM2 日志
 /backups/
 /logs/
+
+# 开发过程文档与调研素材（仅保留本地）
+/docs/design-references/
+/docs/research/
+/docs/planning/
+/docs/progress-log.md
+/流萤动态博客-需求规格说明书.md
+/流萤动态博客（Firefly Dynamic）· 实施计划 V1.md
