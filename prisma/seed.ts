@@ -11,7 +11,59 @@ const defaultSettings: Record<string, unknown> = {
   siteFavicon: "",
   footerText: "Powered by 流萤动态博客",
   icpNumber: "",
-  socialLinks: [],
+  socialLinks: [
+    { label: "GitHub", url: "https://github.com/piglatiao" },
+    { label: "邮箱", url: "mailto:1795228048@qq.com" },
+  ],
+  navLinks: [
+    { label: "主页", href: "/", children: [] },
+    {
+      label: "文章",
+      href: "",
+      children: [
+        { label: "归档", href: "/archive" },
+        { label: "分类", href: "/categories" },
+        { label: "标签", href: "/tags" },
+        { label: "系列", href: "/series" },
+      ],
+    },
+    {
+      label: "社交",
+      href: "",
+      children: [
+        { label: "友链", href: "/friends" },
+        { label: "留言", href: "/guestbook" },
+      ],
+    },
+    {
+      label: "我的",
+      href: "",
+      children: [
+        { label: "动态", href: "/dynamic" },
+        { label: "项目", href: "/projects" },
+        { label: "相册", href: "/gallery" },
+        { label: "书签导航", href: "/booknav" },
+        { label: "哔哩哔哩", href: "/bilibili" },
+      ],
+    },
+    {
+      label: "关于",
+      href: "",
+      children: [
+        { label: "打赏", href: "/sponsor" },
+        { label: "关于本站", href: "/about" },
+      ],
+    },
+    {
+      label: "链接",
+      href: "",
+      children: [
+        { label: "GitHub", href: "https://github.com/CuteLeaf/Firefly" },
+        { label: "Gitee", href: "https://gitee.com/CuteLeaf/Firefly" },
+        { label: "Firefly文档", href: "https://docs-firefly.cuteleaf.cn" },
+      ],
+    },
+  ],
   seoKeywords: [],
   commentsEnabled: true,
   commentsRequireApproval: false,
@@ -19,24 +71,24 @@ const defaultSettings: Record<string, unknown> = {
   friendPageDescription: "这里是我的朋友们，欢迎互相访问交流",
   friendShowCustomContent: true,
   friendShowComment: true,
-  friendContactEmail: "",
+  friendContactEmail: "1795228048@qq.com",
   friendNotes: [
     { title: "互换原则", content: "请先将本站添加到您的友链页面，确认后会添加您的友链" },
     { title: "链接维护", content: "友链网站长期无法访问或内容违规，将会被移除" },
     { title: "内容要求", content: "内容积极向上，不含有任何违法违规内容" },
     { title: "站点要求", content: "支持 HTTPS，以原创内容为主，能够正常访问且有持续更新" },
   ],
-  sponsorUsage: "您的打赏将用于服务器维护、内容创作和功能开发，帮助我持续提供优质内容。",
+  sponsorUsage: "打赏将用于开发维护以及服务器成本等！",
   sponsorShowList: true,
   bilibiliEnabled: true,
-  bilibiliUid: "38932988",
+  bilibiliUid: "1802201034",
   bilibiliPageTitle: "哔哩哔哩",
   bilibiliPageDescription: "我的哔哩哔哩追番与追剧列表",
   bilibiliItemsPerPage: 24,
   bilibiliCacheMinutes: 60,
   bilibiliShowStats: true,
-  bangumiEnabled: true,
-  bangumiUsername: "1143164",
+  bangumiEnabled: false,
+  bangumiUsername: "",
   bangumiApiUrl: "https://bgmapi.anibt.net",
   bangumiSubjectBaseUrl: "https://bgm.tv/subject",
   bangumiPageTitle: "番组计划",
@@ -44,8 +96,8 @@ const defaultSettings: Record<string, unknown> = {
   bangumiItemsPerPage: 24,
   bangumiCacheMinutes: 60,
   bangumiNsfwMode: "hide",
-  vndbEnabled: true,
-  vndbUserId: "u358128",
+  vndbEnabled: false,
+  vndbUserId: "",
   vndbApiToken: "",
   vndbApiUrl: "https://api.vndb.org/kana",
   vndbVnBaseUrl: "https://vndb.org",
@@ -54,8 +106,8 @@ const defaultSettings: Record<string, unknown> = {
   vndbItemsPerPage: 24,
   vndbCacheMinutes: 60,
   vndbNsfwMode: "hide",
-  malEnabled: true,
-  malUsername: "cuteleaf",
+  malEnabled: false,
+  malUsername: "",
   malClientId: "0ef34371450f9c6c809deaadec6aa8f3",
   malApiUrl: "https://api.myanimelist.net/v2",
   malAnimeBaseUrl: "https://myanimelist.net/anime",
@@ -99,10 +151,10 @@ const defaultSettings: Record<string, unknown> = {
   sakuraEnabled: false,
   showLeftSidebar: true,
   showRightSidebar: true,
-  authorName: "站长",
-  authorBio: "记录技术与生活，把想法写成文字。",
-  authorAvatar: "",
-  announcementText: "欢迎来到我的博客！",
+  authorName: "楽楽",
+  authorBio: "喜欢捣鼓技术的开发者。写代码，玩工控，折腾各类软硬件方案。博客是我的知识自留地，随手记录踩坑、调研和想法。内容随性更新，欢迎来访。",
+  authorAvatar: "/assets/images/author/avatar.png",
+  announcementText: "欢迎来到流萤动态博客：这里记录技术笔记、生活片段与折腾日志。内容在后台随时更新，前台即时生效。",
   siteStartDate: "",
 };
 
@@ -122,7 +174,8 @@ async function seedAdminUser(): Promise<void> {
     data: {
       username,
       passwordHash: await hash(password, 10),
-      nickname: "站长",
+      nickname: "楽楽",
+      email: "1795228048@qq.com",
       role: "admin",
     },
   });
@@ -246,6 +299,38 @@ async function seedGuestbookPage(): Promise<void> {
   console.log("已创建留言页内容");
 }
 
+// 关于本站页面：仅在页面不存在时创建
+async function seedAboutPage(): Promise<void> {
+  const existed = await prisma.page.findUnique({ where: { slug: "about" } });
+  if (existed) {
+    console.log("关于本站页面已存在，跳过创建");
+    return;
+  }
+  await prisma.page.create({
+    data: {
+      title: "关于本站",
+      slug: "about",
+      published: true,
+      content: [
+        "## 关于本站",
+        "",
+        "本站基于开源博客主题 Firefly 的视觉与前台设计改造而来。原版 Firefly 是基于 Astro 与 Fuwari 构建的静态个人博客主题；这个版本将其改造成由 Next.js、React、TypeScript、MySQL 与 Prisma 驱动的前后台一体化动态博客。",
+        "",
+        "目前完成了主要页面、内容管理和后台管理的动态化改造，支持文章、分类、标签、动态、项目、相册、友链、留言、书签、打赏、音乐与自定义页面等内容维护。后台发布后前台即时生效，无需重新构建；部分细节仍在持续完善。",
+        "",
+        "本站为非官方改造版本，原主题设计与实现版权归原作者所有。",
+        "",
+        "- 原主题：Firefly（Astro + Fuwari）",
+        "- 原主题作者：XiaYe / CuteLeaf",
+        "- 本站改造：楽楽",
+        "- 技术栈：Next.js 16、React 19、TypeScript、MySQL 8、Prisma 7",
+        "- 本站仓库：https://github.com/piglatiao/Fyre",
+      ].join("\n"),
+    },
+  });
+  console.log("已创建关于本站页面");
+}
+
 // 示例书签导航：仅在分组表为空时写入
 async function seedBookmarks(): Promise<void> {
   const total = await prisma.bookmarkGroup.count();
@@ -340,66 +425,31 @@ async function seedBookmarks(): Promise<void> {
   console.log(`已写入 ${groups.length} 个示例书签分组`);
 }
 
-// 示例打赏方式与打赏记录：仅在表为空时写入
+// 默认打赏方式：仅在表为空时写入
 async function seedSponsors(): Promise<void> {
   const methodCount = await prisma.sponsorMethod.count();
   if (methodCount === 0) {
     await prisma.sponsorMethod.createMany({
       data: [
         {
-          name: "支付宝",
-          icon: "alipay",
-          qrCodeUrl: "/assets/images/sponsor/alipay.png",
-          description: "使用 支付宝 扫码打赏",
-          sortOrder: 40,
-        },
-        {
           name: "微信",
           icon: "wechat",
           qrCodeUrl: "/assets/images/sponsor/wechat.png",
-          description: "使用 微信 扫码打赏",
-          sortOrder: 30,
-        },
-        {
-          name: "爱发电",
-          icon: "afdian",
-          linkUrl: "https://ifdian.net/a/cuteleaf",
-          description: "通过爱发电支持持续创作",
-          sortOrder: 20,
-        },
-        {
-          name: "Ko-fi",
-          icon: "kofi",
-          linkUrl: "https://ko-fi.com/cuteleaf",
-          description: "Buy a Coffee for Firefly",
+          description: "使用微信扫码打赏",
           sortOrder: 10,
+        },
+        {
+          name: "支付宝",
+          icon: "alipay",
+          qrCodeUrl: "/assets/images/sponsor/alipay.png",
+          description: "使用支付宝扫码打赏",
+          sortOrder: 20,
         },
       ],
     });
   }
   const recordCount = await prisma.sponsorRecord.count();
-  if (recordCount === 0) {
-    await prisma.sponsorRecord.createMany({
-      data: [
-        {
-          name: "夏叶",
-          avatarUrl:
-            "https://weavatar.com/avatar/d252655d40d6874417a720bad0a6c5f77f8f6a1fd2f882f8f338402dc37e4190?s=640",
-          amount: "¥50",
-          message: "感谢持续产出优质内容",
-          sponsoredAt: "2025-10-01",
-          sortOrder: 10,
-        },
-        {
-          name: "匿名用户",
-          amount: "¥20",
-          sponsoredAt: "2025-10-01",
-          sortOrder: 9,
-        },
-      ],
-    });
-  }
-  console.log(`打赏方式 ${methodCount === 0 ? "已初始化" : "已存在"}，打赏记录 ${recordCount === 0 ? "已初始化" : "已存在"}`);
+  console.log(`打赏方式 ${methodCount === 0 ? "已初始化" : "已存在"}，打赏记录 ${recordCount} 条`);
 }
 
 // 示例项目：仅在项目表为空时写入，正文作为项目详情页 README
@@ -636,86 +686,19 @@ async function seedGalleryNavLink(): Promise<void> {
   console.log("导航已加入「相册」入口");
 }
 
-// 把番组计划、VNDB、MyAnimeList 补进「我的」分组，并保持紧随哔哩哔哩的顺序
-async function seedMediaNavLinks(): Promise<void> {
-  const row = await prisma.setting.findUnique({
-    where: { key: "navLinks" },
-    select: { value: true },
-  });
-  if (!row) {
-    return;
-  }
-  let links: unknown;
-  try {
-    links = JSON.parse(row.value);
-  } catch {
-    return;
-  }
-  if (!Array.isArray(links)) {
-    return;
-  }
-  const myGroup = links.find(
-    (item) => typeof item === "object" && item !== null && (item as Record<string, unknown>).label === "我的",
-  );
-  if (typeof myGroup !== "object" || myGroup === null) {
-    return;
-  }
-  const groupRecord = myGroup as Record<string, unknown>;
-  if (!Array.isArray(groupRecord.children)) {
-    return;
-  }
-  const children = groupRecord.children;
-  const desiredLinks = [
-    { label: "番组计划", href: "/bangumi" },
-    { label: "VNDB", href: "/vndb" },
-    { label: "MyAnimeList", href: "/myanimelist" },
-  ];
-  let insertIndex = children.findIndex(
-    (item) => typeof item === "object" && item !== null && (item as Record<string, unknown>).href === "/bilibili",
-  );
-  if (insertIndex >= 0) {
-    insertIndex += 1;
-  } else {
-    const searchIndex = children.findIndex(
-      (item) => typeof item === "object" && item !== null && (item as Record<string, unknown>).href === "/search",
-    );
-    insertIndex = searchIndex >= 0 ? searchIndex : children.length;
-  }
-  let inserted = 0;
-  for (const link of desiredLinks) {
-    const exists = children.some(
-      (item) => typeof item === "object" && item !== null && (item as Record<string, unknown>).href === link.href,
-    );
-    if (exists) {
-      continue;
-    }
-    children.splice(insertIndex, 0, link);
-    insertIndex += 1;
-    inserted += 1;
-  }
-  if (inserted === 0) {
-    return;
-  }
-  await prisma.setting.update({
-    where: { key: "navLinks" },
-    data: { value: JSON.stringify(links) },
-  });
-  console.log(`导航已加入 ${inserted} 个媒体收藏入口`);
-}
-
 async function main(): Promise<void> {
   await seedAdminUser();
   await seedSettings();
   await seedDynamics();
   await seedFriendLinks();
   await seedGuestbookPage();
+  await seedAboutPage();
   await seedBookmarks();
   await seedSponsors();
   await seedProjects();
   await seedProjectNavLink();
   await seedGallery();
   await seedGalleryNavLink();
-  await seedMediaNavLinks();
 }
 
 main()
