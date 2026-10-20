@@ -1,6 +1,30 @@
 # 流萤动态博客（Firefly Dynamic）
 
+> 本项目是基于 [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly) 的非官方动态化改编版本。原版是基于 Astro 与 Fuwari 的静态个人博客主题；本项目将其改造为由 Next.js、React、TypeScript、MySQL 与 Prisma 驱动的前后台一体化动态博客。
+
 把静态的流萤（Firefly）主题重构为**前后台一体的纯动态博客**：服务端渲染的访客端 + 自带管理后台 + MySQL 数据库。后台发布即时生效，无需重新构建部署；支持定时发布、Markdown 编辑、媒体库、SEO 与 RSS / Atom 订阅。
+
+## 项目预览
+
+以下截图均来自当前动态化版本。
+
+| 访客端首页 | 文章详情 |
+| --- | --- |
+| ![访客端首页](docs/screenshots/readme/home-desktop.webp) | ![文章详情](docs/screenshots/readme/post-desktop.webp) |
+| **相册页** | **搜索结果页** |
+| ![相册页](docs/screenshots/readme/gallery-desktop.webp) | ![搜索结果页](docs/screenshots/readme/search-desktop.webp) |
+| **后台仪表盘** | **文章管理** |
+| ![后台仪表盘](docs/screenshots/readme/admin-dashboard.webp) | ![文章管理](docs/screenshots/readme/admin-posts.webp) |
+
+<p align="center">
+  <img src="docs/screenshots/readme/home-mobile.webp" alt="移动端首页" width="390">
+</p>
+
+## 演示视频
+
+[![Firefly Dynamic 演示视频预览](docs/screenshots/readme/home-desktop.webp)](https://img.jieyi.eu.org/fyre.mp4)
+
+点击预览图或[此链接](https://img.jieyi.eu.org/fyre.mp4)播放完整演示视频。
 
 ## 技术栈
 
@@ -120,6 +144,21 @@ data/uploads/           上传的媒体文件（运行时生成，不入库）
 - Windows Server（PM2 + Nginx 或 IIS ARR + 计划任务）：`docs/deploy-windows.md`
 - 定时任务、备份恢复、升级回滚与排障：`docs/operations.md`
 - 上线前逐项核对：`docs/go-live-checklist.md`
+
+## 来源、版权与许可
+
+本项目是根据 [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly) 的视觉与前台设计进行的非官方动态化改编，并非原主题的官方发行版本。
+
+- 原项目：Firefly，作者 XiaYe / CuteLeaf
+- 原项目地址：https://github.com/CuteLeaf/Firefly
+- 原项目演示：https://firefly.cuteleaf.cn/
+- 上游基础：Firefly 基于 [Fuwari](https://github.com/saicaca/fuwari) 构建
+- 原项目许可：[MIT License](https://github.com/CuteLeaf/Firefly/blob/master/LICENSE)
+- 原版权声明：Copyright (c) 2024 saicaca；Copyright (c) 2025 CuteLeaf
+- 当前改造项目：https://github.com/piglatiao/Fyre
+- 本仓库许可证：[LICENSE](LICENSE)
+
+原主题的名称、设计、代码及相关素材版权归原作者及相应权利人所有。当前项目对原主题的改造不代表原作者官方立场。转载、再分发或商用前，请遵守上游 MIT License，并自行确认文章、图片、字体等素材的授权范围。
 
 ## 页面与接口约定
 
