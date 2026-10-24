@@ -58,7 +58,7 @@ export function useMusicPlayer(tracks: MusicTrack[]): MusicPlayerState {
   const current = tracks[currentIndex] ?? null;
   const lyricsText = current?.lyrics?.trim()
     ? current.lyrics
-    : remoteLyrics?.trackId === current?.id
+    : remoteLyrics && remoteLyrics.trackId === current?.id
       ? remoteLyrics.text
       : "";
   const lyrics = useMemo(() => parseLrc(lyricsText), [lyricsText]);
