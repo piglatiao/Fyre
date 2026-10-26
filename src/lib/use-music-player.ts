@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseLrc } from "@/lib/parse-lrc";
 import type { MusicPlayMode } from "@/types/music-play-mode";
